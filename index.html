@@ -4,66 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Turkcell 6 Sigma Performance Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        :root { 
-            --t-blue: #001a35; --t-yellow: #FFCB05; --t-light: #0047BB; 
+        :root {
+            --t-blue: #001a35; --t-yellow: #FFCB05; --t-light: #0047BB;
             --bg: #0f0f0f; --card-bg: #1a1a1a; --text: #ffffff;
-            --up-green: #00ff00; --down-red: #ff3333; 
+            --up-green: #00ff00; --down-red: #ff3333; --border: #333; --kpi-bg: #2d2d2d;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; }
+        /* Aydınlık Mod Değişkenleri */
+        [data-theme="light"] {
+            --bg: #f4f7f6; --card-bg: #ffffff; --text: #1a1a1a;
+            --border: #ddd; --kpi-bg: #f8f9fa;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; }
+
         .sidebar { width: 320px; background: var(--t-blue); height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box; overflow-y: auto; border-right: 1px solid #333; z-index: 1000; }
-        .sidebar-logo { width: 100%; max-width: 250px; margin: 0 auto 30px; display: block; }
+        .sidebar-logo { width: 100%; max-width: 150px; margin: 0 auto 30px; display: block; }
         .sidebar h2 { color: var(--t-yellow); border-bottom: 2px solid var(--t-yellow); padding-bottom: 10px; margin-bottom: 25px; font-size: 1.1rem; }
+
         label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 0.85rem; color: #ccc; }
-        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; font-size: 0.95rem; background: #2d2d2d; color: white; cursor: pointer; }
+        select, .search-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; font-size: 0.95rem; background: #2d2d2d; color: white; cursor: pointer; outline: none; }
+
+        /* Tema Butonu */
+        .theme-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--t-yellow); color: #000; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 0.9rem; }
+
         .content { margin-left: 320px; padding: 30px; width: calc(100% - 320px); box-sizing: border-box; }
-        .header { background: var(--card-bg); padding: 20px; border-radius: 12px; border-left: 10px solid var(--t-yellow); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 25px; border: 1px solid #333; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; border: 1px solid var(--border); transition: background 0.3s; }
+
         .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .kpi-box { background: #2d2d2d; padding: 12px; border-radius: 10px; text-align: center; border: 1px solid #444; }
-        .kpi-box span { font-size: 0.65rem; color: #aaa; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 5px; }
-        .kpi-box h3 { margin: 0; color: white; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
-        .trend-pill { font-size: 0.8rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; margin-left: 5px; }
+        .kpi-box { background: var(--kpi-bg); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .kpi-box span { font-size: 0.6rem; color: #888; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 5px; }
+        .kpi-box h3 { margin: 0; color: var(--text); font-size: 1rem; }
+
+        .trend-pill { font-size: 0.75rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; margin-left: 5px; }
         .trend-up { color: #000 !important; background: var(--up-green); }
         .trend-down { color: #fff !important; background: var(--down-red); }
-        .trend-stable { color: #999; background: #333; }
-        .performance-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid #444; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #333; }
-        .val-num { font-weight: bold; color: var(--t-yellow); font-size: 1rem; }
+
+        .performance-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .val-num { font-weight: bold; color: var(--t-light); }
+
+        .staff-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .staff-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--t-light); }
+        .staff-table td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+
         .chart-container { position: relative; height: 350px; width: 100%; }
-        
-        /* Personel Tablosu */
-        .staff-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #ddd; font-size: 0.9rem; }
-        .staff-table th { text-align: left; padding: 12px; border-bottom: 2px solid #444; color: var(--t-yellow); }
-        .staff-table td { padding: 10px; border-bottom: 1px solid #333; }
-        .staff-table tr:hover { background: rgba(255,203,5,0.05); }
 
         @media screen and (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: relative; border-right: none; padding: 15px; }
-            .content { margin-left: 0; width: 100%; padding: 10px; }
+            .sidebar { width: 100%; height: auto; position: relative; border-right: none; }
+            .content { margin-left: 0; width: 100%; padding: 15px; }
             .kpi-grid { grid-template-columns: 1fr 1fr; }
-            .chart-container { height: 250px; }
-            div[style*="display: grid"] { grid-template-columns: 1fr !important; }
         }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <img src="image_3.png" alt="Turkcell Logo" class="sidebar-logo">
+    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Turkcell_logo.svg/1200px-Turkcell_logo.svg.png" alt="Logo" class="sidebar-logo">
     <h2>DÖNEMSEL ANALİZ</h2>
-    
-    <label>1. BÖLGE FİLTRESİ</label>
-    <select id="regionSelect" onchange="runDashboard()">
-        <option value="Hepsi">Tüm Türkiye</option>
-        <option value="Adana">Adana</option><option value="Ankara">Ankara</option><option value="Antalya">Antalya</option>
-        <option value="Asya">Asya</option><option value="Avrupa">Avrupa</option><option value="Bursa">Bursa</option>
-        <option value="Diyarbakır">Diyarbakır</option><option value="İzmir">İzmir</option><option value="Trabzon">Trabzon</option>
-    </select>
 
-    <label>2. SIRALAMA KRİTERİ (TOP 10)</label>
+    <label>BÖLGE FİLTRESİ</label>
+    <select id="regionSelect" onchange="runDashboard()"><option value="Hepsi">Tüm Türkiye</option></select>
+
+    <label>SIRALAMA KRİTERİ</label>
     <select id="metricFilter" onchange="updateTop10Chart()">
         <option value="-1">Toplam Puan</option>
         <option value="0">Bütçe Değişim</option>
@@ -74,232 +80,190 @@
         <option value="5">Genel İşlem</option>
     </select>
 
-    <label>3. PERSONEL SEÇİMİ</label>
+    <label>PERSONEL SEÇİMİ</label>
     <select id="personSelect" onchange="updateView()"></select>
+
+    <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">GÜNDÜZ MODUNA GEÇ</button>
 </div>
 
 <div class="content">
-    <div class="header">
-        <h1>6 Sigma Performans Analiz Paneli</h1>
-        <div style="color: var(--t-yellow); font-weight: bold;">Aralık 2025 Verileri</div>
-    </div>
-
     <div class="card">
-        <h3 class="chart-title" id="top10Title">En İyi 10 Performans</h3>
-        <div class="chart-container" style="height: 400px;"><canvas id="top10Chart"></canvas></div>
+        <h3 class="chart-title" id="top10Title" style="color:var(--t-light)">En İyi 10 Performans</h3>
+        <div class="chart-container"><canvas id="top10Chart"></canvas></div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div class="card">
-            <h3 class="chart-title" id="personTitle">Kişi Karnesi</h3>
-            <div class="kpi-grid">
-                <div class="kpi-box"><span>BÖLGE</span><h3 id="kpiRegion">-</h3></div>
-                <div class="kpi-box"><span>PUAN</span><h3><span id="kpiScore">0</span> <span id="totalTrend" class="trend-pill"></span></h3></div>
-                <div class="kpi-box"><span>SIRA</span><h3 id="kpiRank">#0</h3></div>
-            </div>
-            <div class="chart-container" style="margin-top:20px;"><canvas id="radarChart"></canvas></div>
+            <h3 id="personTitle" style="color:var(--t-light)">Kişi Karnesi</h3>
+            <div class="kpi-grid" id="pKpis"></div>
+            <div class="chart-container"><canvas id="radarChart"></canvas></div>
             <ul class="performance-list" id="trendDetailList"></ul>
         </div>
-
         <div class="card">
-            <h3 class="chart-title" id="regionTitle">Bölge Karnesi</h3>
-            <div class="kpi-grid">
-                <div class="kpi-box"><span>BÖLGE</span><h3 id="regKpiName">-</h3></div>
-                <div class="kpi-box"><span>ORT.</span><h3><span id="regKpiScore">0</span> <span id="regTotalTrend" class="trend-pill"></span></h3></div>
-                <div class="kpi-box"><span>SIRA</span><h3 id="regKpiRank">#0</h3></div>
-            </div>
-            <div class="chart-container" style="margin-top:20px;"><canvas id="regionRadarChart"></canvas></div>
+            <h3 id="regionTitle" style="color:var(--t-light)">Bölge Karnesi</h3>
+            <div class="kpi-grid" id="rKpis"></div>
+            <div class="chart-container"><canvas id="regionRadarChart"></canvas></div>
             <ul class="performance-list" id="regTrendDetailList"></ul>
         </div>
     </div>
 
     <div class="card">
-        <h3 class="chart-title">Tüm Personel Sıralama Listesi</h3>
+        <h3 style="color:var(--t-light)">Personel Sıralama Listesi</h3>
+        <input type="text" id="staffSearch" class="search-box" placeholder="İsim veya Bölge Ara..." onkeyup="searchTable()">
         <table class="staff-table" id="staffTable">
-            <thead>
-                <tr>
-                    <th>Sıra</th>
-                    <th>Bölge</th>
-                    <th>İsim Soyisim</th>
-                    <th>Toplam Puan</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Bölge</th><th>İsim Soyisim</th><th>Puan</th><th>Sıra</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const YENI_DONEM_VERISI = [{"name": "Osman Dallıkavak", "region": "Adana", "score": 91.59, "breakdown": [22.59, 18.0, 18.0, 15.0, 10.0, 8.0]}, {"name": "Mustafa Tang", "region": "Adana", "score": 91.16, "breakdown": [22.16, 16.0, 18.0, 15.0, 10.0, 10.0]}, {"name": "Serkan Saray", "region": "Antalya", "score": 90.59, "breakdown": [18.59, 20.0, 18.0, 15.0, 10.0, 9.0]}, {"name": "Hasan Bucak", "region": "Diyarbakır", "score": 90.11, "breakdown": [18.11, 20.0, 20.0, 15.0, 10.0, 7.0]}, {"name": "Hüseyin Genç", "region": "Antalya", "score": 90.0, "breakdown": [25.0, 16.0, 18.0, 14.0, 10.0, 7.0]}, {"name": "Erhan Uyumaz", "region": "Antalya", "score": 89.51, "breakdown": [23.51, 20.0, 18.0, 10.0, 10.0, 8.0]}, {"name": "Abdullah Tayfur Odabaşı", "region": "Ankara", "score": 89.05, "breakdown": [21.05, 18.0, 18.0, 14.0, 10.0, 8.0]}, {"name": "Mehmet Karabulut", "region": "Bursa", "score": 88.88, "breakdown": [19.88, 20.0, 16.0, 15.0, 10.0, 8.0]}, {"name": "Halil Atile", "region": "Adana", "score": 85.6, "breakdown": [21.03, 16.0, 18.0, 12.57, 10.0, 8.0]}, {"name": "Fatma Yazıcı", "region": "Avrupa", "score": 85.58, "breakdown": [19.92, 20.0, 14.0, 13.67, 10.0, 8.0]}, {"name": "Sefa Yaman", "region": "Trabzon", "score": 84.95, "breakdown": [20.95, 18.0, 18.0, 10.0, 10.0, 8.0]}, {"name": "Berat Nurdoğan", "region": "Adana", "score": 84.89, "breakdown": [19.89, 18.0, 14.0, 15.0, 10.0, 8.0]}, {"name": "Soner Dal", "region": "Adana", "score": 84.85, "breakdown": [17.85, 16.0, 18.0, 15.0, 10.0, 8.0]}, {"name": "Erdal Antmen", "region": "Adana", "score": 84.8, "breakdown": [18.8, 18.0, 18.0, 14.0, 10.0, 6.0]}, {"name": "Adem Özdemir", "region": "Trabzon", "score": 84.41, "breakdown": [17.41, 16.0, 18.0, 15.0, 10.0, 8.0]}, {"name": "Mehmet Yılmazgil", "region": "Antalya", "score": 84.2, "breakdown": [20.2, 16.0, 16.0, 15.0, 10.0, 7.0]}, {"name": "Ahmet Aldemir", "region": "Antalya", "score": 84.02, "breakdown": [19.02, 14.0, 18.0, 15.0, 10.0, 8.0]}, {"name": "Koray Gümüş", "region": "Avrupa", "score": 83.48, "breakdown": [18.48, 20.0, 10.0, 15.0, 10.0, 10.0]}, {"name": "Bayram Aydoğan", "region": "Diyarbakır", "score": 83.06, "breakdown": [21.06, 10.0, 18.0, 15.0, 10.0, 9.0]}, {"name": "Armağan Can Şahan", "region": "Bursa", "score": 82.92, "breakdown": [19.92, 18.0, 12.0, 15.0, 10.0, 8.0]}, {"name": "Naim Ayşin", "region": "Diyarbakır", "score": 82.63, "breakdown": [19.63, 12.0, 20.0, 15.0, 10.0, 6.0]}, {"name": "Taylan Gezici", "region": "Asya", "score": 82.33, "breakdown": [17.33, 20.0, 12.0, 14.0, 10.0, 9.0]}, {"name": "Mehmet Evren Hendek", "region": "Ankara", "score": 81.84, "breakdown": [19.84, 16.0, 14.0, 15.0, 10.0, 7.0]}, {"name": "Ömer Can Gençtürk", "region": "Adana", "score": 81.79, "breakdown": [18.79, 16.0, 16.0, 15.0, 10.0, 6.0]}, {"name": "Okan Bartık", "region": "Ankara", "score": 81.74, "breakdown": [18.74, 16.0, 14.0, 15.0, 10.0, 8.0]}, {"name": "Kemal Cem Altan", "region": "Ankara", "score": 81.43, "breakdown": [20.0, 14.0, 16.0, 13.43, 10.0, 8.0]}, {"name": "Yiğit Tümel", "region": "Ankara", "score": 81.11, "breakdown": [20.11, 16.0, 14.0, 15.0, 10.0, 6.0]}, {"name": "Mehmet Suphi Fansa", "region": "Adana", "score": 80.7, "breakdown": [17.7, 14.0, 18.0, 15.0, 10.0, 6.0]}, {"name": "Hüseyin Kurutaç", "region": "İzmir", "score": 80.21, "breakdown": [20.21, 14.0, 12.0, 15.0, 10.0, 9.0]}, {"name": "Fatih Güven", "region": "Ankara", "score": 80.15, "breakdown": [20.15, 18.0, 14.0, 10.0, 10.0, 8.0]}, {"name": "Enes Doğanay", "region": "Bursa", "score": 79.75, "breakdown": [21.17, 16.0, 12.0, 12.57, 10.0, 8.0]}, {"name": "Halil İbrahim Yavuz", "region": "Diyarbakır", "score": 79.29, "breakdown": [14.49, 20.0, 18.0, 10.8, 10.0, 6.0]}, {"name": "Demet Tekin Geçim", "region": "Adana", "score": 79.26, "breakdown": [17.55, 14.0, 16.0, 13.71, 10.0, 8.0]}, {"name": "Güven Ünsal", "region": "İzmir", "score": 78.67, "breakdown": [18.67, 16.0, 12.0, 15.0, 10.0, 7.0]}, {"name": "Hikmet İrem Dölek", "region": "Avrupa", "score": 77.86, "breakdown": [16.86, 20.0, 12.0, 15.0, 6.0, 8.0]}, {"name": "Ersin Tekçe", "region": "Avrupa", "score": 77.56, "breakdown": [16.56, 16.0, 14.0, 15.0, 8.0, 8.0]}, {"name": "Süleyman Karamanlı", "region": "Diyarbakır", "score": 77.18, "breakdown": [16.18, 10.0, 20.0, 15.0, 10.0, 6.0]}, {"name": "Ömür Bektaşoğlu", "region": "Trabzon", "score": 76.69, "breakdown": [20.69, 10.0, 14.0, 14.0, 10.0, 8.0]}, {"name": "Onur Demirtaş", "region": "Avrupa", "score": 76.67, "breakdown": [15.67, 18.0, 12.0, 15.0, 10.0, 6.0]}, {"name": "Özkan Selçuk Baştar", "region": "Bursa", "score": 76.01, "breakdown": [20.01, 10.0, 12.0, 15.0, 10.0, 9.0]}, {"name": "Emre Koç", "region": "Asya", "score": 76.0, "breakdown": [10.0, 20.0, 12.0, 15.0, 10.0, 9.0]}, {"name": "Barış Akpınar", "region": "Ankara", "score": 75.49, "breakdown": [19.49, 10.0, 16.0, 14.0, 10.0, 6.0]}, {"name": "Sıddık Katrancı", "region": "Avrupa", "score": 75.32, "breakdown": [16.66, 16.0, 12.0, 12.67, 10.0, 8.0]}, {"name": "Erdem Akarsu", "region": "Asya", "score": 74.18, "breakdown": [16.4, 20.0, 10.0, 11.78, 10.0, 6.0]}, {"name": "Habip Kilit", "region": "Asya", "score": 73.93, "breakdown": [10.93, 20.0, 12.0, 15.0, 8.0, 8.0]}, {"name": "Volkan Heriş", "region": "Avrupa", "score": 73.81, "breakdown": [17.81, 16.0, 12.0, 14.0, 6.0, 8.0]}, {"name": "Ömer Tulun", "region": "İzmir", "score": 73.66, "breakdown": [17.66, 14.0, 10.0, 15.0, 10.0, 7.0]}, {"name": "Akay Kaptan", "region": "İzmir", "score": 73.22, "breakdown": [19.22, 10.0, 12.0, 15.0, 10.0, 7.0]}, {"name": "Serkan Civre", "region": "İzmir", "score": 73.22, "breakdown": [21.22, 10.0, 10.0, 15.0, 10.0, 7.0]}, {"name": "Suphi Abacı", "region": "Adana", "score": 72.92, "breakdown": [18.64, 10.0, 16.0, 12.29, 10.0, 6.0]}, {"name": "Süleyman Deniz Sayar", "region": "Bursa", "score": 72.88, "breakdown": [19.88, 14.0, 12.0, 14.0, 4.0, 9.0]}, {"name": "Yunus Emre Yeşilyurt", "region": "Asya", "score": 72.57, "breakdown": [16.57, 20.0, 12.0, 15.0, 0.0, 9.0]}, {"name": "Serhat Çakan", "region": "Trabzon", "score": 72.41, "breakdown": [17.81, 10.0, 16.0, 11.6, 10.0, 7.0]}, {"name": "Süleyman Gümüş", "region": "Trabzon", "score": 72.03, "breakdown": [17.03, 10.0, 14.0, 15.0, 10.0, 6.0]}, {"name": "Nevzat Akkuş", "region": "Diyarbakır", "score": 71.56, "breakdown": [12.56, 8.0, 20.0, 14.0, 10.0, 7.0]}, {"name": "Onur Reis", "region": "Trabzon", "score": 71.16, "breakdown": [19.16, 8.0, 14.0, 14.0, 10.0, 6.0]}, {"name": "Serkan Tüzün", "region": "İzmir", "score": 71.13, "breakdown": [18.13, 10.0, 12.0, 14.0, 10.0, 7.0]}, {"name": "Mahmut Nişancı", "region": "Trabzon", "score": 70.69, "breakdown": [20.29, 6.0, 18.0, 10.4, 10.0, 6.0]}, {"name": "Ferhat Yalçın", "region": "İzmir", "score": 70.61, "breakdown": [18.34, 10.0, 12.0, 13.27, 10.0, 7.0]}, {"name": "Berk Baş", "region": "Adana", "score": 70.47, "breakdown": [16.47, 10.0, 18.0, 10.0, 10.0, 6.0]}, {"name": "Abdulkadir Ertekin", "region": "Avrupa", "score": 70.26, "breakdown": [15.6, 18.0, 10.0, 10.67, 10.0, 6.0]}, {"name": "Coşkun Tuncer", "region": "Avrupa", "score": 70.1, "breakdown": [15.1, 14.0, 10.0, 15.0, 10.0, 6.0]}, {"name": "Berk Kutay Şen", "region": "Avrupa", "score": 70.0, "breakdown": [16.66, 14.0, 10.0, 11.33, 10.0, 8.0]}, {"name": "Adem Dokgöz", "region": "Avrupa", "score": 69.95, "breakdown": [16.95, 10.0, 12.0, 15.0, 10.0, 6.0]}, {"name": "Levent Baysal", "region": "İzmir", "score": 69.38, "breakdown": [17.19, 16.0, 10.0, 12.18, 8.0, 6.0]}, {"name": "Furkan Eyvaz", "region": "Bursa", "score": 68.95, "breakdown": [17.52, 14.0, 12.0, 11.43, 8.0, 6.0]}, {"name": "Oğuz Filiz", "region": "Asya", "score": 67.64, "breakdown": [13.64, 10.0, 12.0, 15.0, 10.0, 7.0]}, {"name": "Ozan Şensoy", "region": "Trabzon", "score": 67.52, "breakdown": [14.52, 8.0, 14.0, 15.0, 10.0, 6.0]}, {"name": "Erdem Gülmez", "region": "Bursa", "score": 67.07, "breakdown": [16.07, 8.0, 12.0, 14.0, 10.0, 7.0]}, {"name": "Murat Eden", "region": "Avrupa", "score": 66.49, "breakdown": [18.49, 10.0, 12.0, 10.0, 10.0, 6.0]}, {"name": "Ahmet Serhat Kaplan", "region": "Bursa", "score": 64.07, "breakdown": [17.07, 8.0, 12.0, 10.0, 10.0, 7.0]}, {"name": "Barış Gürkan Erez", "region": "Asya", "score": 58.51, "breakdown": [12.51, 14.0, 12.0, 10.0, 4.0, 6.0]}, {"name": "Asena Çakır", "region": "İzmir", "score": 57.09, "breakdown": [19.09, 4.0, 10.0, 10.0, 10.0, 4.0]}];
-    const ESKI_DONEM_VERISI = [{"name": "Hüseyin Genç", "region": "Antalya", "score": 76.0, "breakdown": [25.0, 14.0, 20.0, 0.0, 10.0, 7.0]}, {"name": "Mehmet Karabulut", "region": "Bursa", "score": 75.49, "breakdown": [19.49, 20.0, 16.0, 0.0, 10.0, 10.0]}, {"name": "Mustafa Tang", "region": "Adana", "score": 75.43, "breakdown": [21.43, 16.0, 18.0, 0.0, 10.0, 10.0]}, {"name": "Sefa Yaman", "region": "Trabzon", "score": 75.32, "breakdown": [19.32, 18.0, 20.0, 0.0, 10.0, 8.0]}, {"name": "Abdullah Tayfur Odabaşı", "region": "Ankara", "score": 72.82, "breakdown": [20.82, 14.0, 20.0, 0.0, 10.0, 8.0]}, {"name": "Mehmet Yılmazgil", "region": "Antalya", "score": 72.59, "breakdown": [19.59, 16.0, 20.0, 0.0, 10.0, 7.0]}, {"name": "Adem Özdemir", "region": "Trabzon", "score": 72.47, "breakdown": [16.47, 16.0, 20.0, 0.0, 10.0, 10.0]}, {"name": "Halil Atile", "region": "Adana", "score": 71.92, "breakdown": [20.92, 14.0, 18.0, 0.0, 10.0, 9.0]}, {"name": "Fatma Yazıcı", "region": "Avrupa", "score": 70.88, "breakdown": [18.88, 18.0, 16.0, 0.0, 10.0, 8.0]}, {"name": "Erhan Uyumaz", "region": "Antalya", "score": 70.22, "breakdown": [23.22, 10.0, 20.0, 0.0, 10.0, 7.0]}, {"name": "Serkan Saray", "region": "Antalya", "score": 69.46, "breakdown": [17.46, 14.0, 20.0, 0.0, 10.0, 8.0]}, {"name": "Emrah Çeken", "region": "Antalya", "score": 68.61, "breakdown": [18.61, 14.0, 18.0, 0.0, 10.0, 8.0]}, {"name": "Osman Dallıkavak", "region": "Adana", "score": 67.81, "breakdown": [21.81, 10.0, 18.0, 0.0, 10.0, 8.0]}, {"name": "Erdal Antmen", "region": "Adana", "score": 67.69, "breakdown": [17.69, 16.0, 16.0, 0.0, 10.0, 8.0]}, {"name": "Kemal Cem Altan", "region": "Ankara", "score": 67.61, "breakdown": [19.61, 10.0, 20.0, 0.0, 10.0, 8.0]}, {"name": "Okan Bartık", "region": "Ankara", "score": 67.27, "breakdown": [18.27, 14.0, 16.0, 0.0, 10.0, 9.0]}, {"name": "Ahmet Aldemir", "region": "Antalya", "score": 67.1, "breakdown": [18.1, 10.0, 20.0, 0.0, 10.0, 9.0]}, {"name": "Berat Nurdoğan", "region": "Adana", "score": 66.95, "breakdown": [19.95, 14.0, 14.0, 0.0, 10.0, 9.0]}, {"name": "Yiğit Tümel", "region": "Ankara", "score": 66.29, "breakdown": [19.29, 14.0, 16.0, 0.0, 10.0, 7.0]}, {"name": "Hasan Bucak", "region": "Diyarbakır", "score": 66.07, "breakdown": [17.07, 14.0, 18.0, 0.0, 10.0, 7.0]}, {"name": "Taylan Gezici", "region": "Asya", "score": 65.95, "breakdown": [16.95, 18.0, 12.0, 0.0, 10.0, 9.0]}, {"name": "Koray Gümüş", "region": "Avrupa", "score": 65.81, "breakdown": [17.81, 18.0, 10.0, 0.0, 10.0, 10.0]}, {"name": "Ömür Bektaşoğlu", "region": "Trabzon", "score": 65.76, "breakdown": [19.76, 10.0, 18.0, 0.0, 10.0, 8.0]}, {"name": "Armağan Can Şahan", "region": "Bursa", "score": 65.22, "breakdown": [19.22, 16.0, 12.0, 0.0, 10.0, 8.0]}, {"name": "Barış Akpınar", "region": "Ankara", "score": 64.26, "breakdown": [18.26, 10.0, 20.0, 0.0, 10.0, 6.0]}, {"name": "Bayram Aydoğan", "region": "Diyarbakır", "score": 63.06, "breakdown": [20.06, 10.0, 16.0, 0.0, 10.0, 7.0]}, {"name": "Soner Dal", "region": "Adana", "score": 62.82, "breakdown": [16.82, 10.0, 18.0, 0.0, 10.0, 8.0]}, {"name": "Mehmet Evren Hendek", "region": "Ankara", "score": 62.18, "breakdown": [20.18, 10.0, 16.0, 0.0, 10.0, 6.0]}, {"name": "Serhat Çakan", "region": "Trabzon", "score": 62.17, "breakdown": [16.17, 10.0, 20.0, 0.0, 10.0, 6.0]}, {"name": "Ömer Can Gençtürk", "region": "Adana", "score": 61.05, "breakdown": [17.05, 12.0, 16.0, 0.0, 10.0, 6.0]}, {"name": "Sıddık Katrancı", "region": "Avrupa", "score": 61.02, "breakdown": [15.02, 14.0, 12.0, 0.0, 10.0, 10.0]}, {"name": "Demet Tekin Geçim", "region": "Adana", "score": 60.74, "breakdown": [16.74, 12.0, 14.0, 0.0, 10.0, 8.0]}, {"name": "Güven Ünsal", "region": "İzmir", "score": 60.46, "breakdown": [17.46, 14.0, 10.0, 0.0, 10.0, 9.0]}, {"name": "Onur Reis", "region": "Trabzon", "score": 60.41, "breakdown": [18.41, 10.0, 16.0, 0.0, 10.0, 6.0]}, {"name": "Habip Kilit", "region": "Asya", "score": 60.32, "breakdown": [11.32, 18.0, 12.0, 0.0, 10.0, 9.0]}, {"name": "Hüseyin Kurutaç", "region": "İzmir", "score": 60.26, "breakdown": [19.26, 10.0, 12.0, 0.0, 10.0, 9.0]}, {"name": "Suphi Abacı", "region": "Adana", "score": 59.53, "breakdown": [17.53, 10.0, 16.0, 0.0, 10.0, 6.0]}, {"name": "Naim Ayşin", "region": "Diyarbakır", "score": 59.32, "breakdown": [19.32, 10.0, 14.0, 0.0, 10.0, 6.0]}, {"name": "Süleyman Karamanlı", "region": "Diyarbakır", "score": 59.07, "breakdown": [15.07, 10.0, 18.0, 0.0, 10.0, 6.0]}, {"name": "Ozan Şensoy", "region": "Trabzon", "score": 58.12, "breakdown": [14.12, 10.0, 18.0, 0.0, 10.0, 6.0]}, {"name": "Özkan Selçuk Baştar", "region": "Bursa", "score": 58.05, "breakdown": [19.05, 10.0, 10.0, 0.0, 10.0, 9.0]}, {"name": "Serkan Civre", "region": "İzmir", "score": 57.93, "breakdown": [20.93, 10.0, 10.0, 0.0, 10.0, 7.0]}, {"name": "Berk Baş", "region": "Adana", "score": 57.35, "breakdown": [15.35, 10.0, 18.0, 0.0, 10.0, 4.0]}, {"name": "Fatih Güven", "region": "Ankara", "score": 57.14, "breakdown": [19.14, 6.0, 16.0, 0.0, 10.0, 6.0]}, {"name": "Ersin Tekçe", "region": "Avrupa", "score": 56.88, "breakdown": [16.88, 10.0, 16.0, 0.0, 6.0, 8.0]}, {"name": "Süleyman Gümüş", "region": "Trabzon", "score": 56.7, "breakdown": [16.7, 8.0, 16.0, 0.0, 10.0, 6.0]}, {"name": "Serkan Tüzün", "region": "İzmir", "score": 56.29, "breakdown": [17.29, 10.0, 12.0, 0.0, 10.0, 7.0]}, {"name": "Mehmet Suphi Fansa", "region": "Adana", "score": 56.24, "breakdown": [16.24, 6.0, 18.0, 0.0, 10.0, 6.0]}, {"name": "Ferhat Yalçın", "region": "İzmir", "score": 55.67, "breakdown": [16.67, 10.0, 12.0, 0.0, 10.0, 7.0]}, {"name": "Süleyman Deniz Sayar", "region": "Bursa", "score": 55.65, "breakdown": [19.65, 10.0, 12.0, 0.0, 4.0, 10.0]}, {"name": "Akay Kaptan", "region": "İzmir", "score": 55.57, "breakdown": [17.57, 10.0, 12.0, 0.0, 10.0, 6.0]}, {"name": "Hikmet İrem Dölek", "region": "Avrupa", "score": 55.02, "breakdown": [15.02, 14.0, 12.0, 0.0, 6.0, 8.0]}, {"name": "Emre Koç", "region": "Asya", "score": 55.0, "breakdown": [10.0, 14.0, 12.0, 0.0, 10.0, 9.0]}, {"name": "Mahmut Nişancı", "region": "Trabzon", "score": 54.57, "breakdown": [16.57, 4.0, 18.0, 0.0, 10.0, 6.0]}, {"name": "Yunus Emre Yeşilyurt", "region": "Asya", "score": 53.87, "breakdown": [15.87, 18.0, 10.0, 0.0, 0.0, 10.0]}, {"name": "Levent Baysal", "region": "İzmir", "score": 53.84, "breakdown": [16.84, 14.0, 10.0, 0.0, 8.0, 5.0]}, {"name": "Onur Demirtaş", "region": "Avrupa", "score": 52.92, "breakdown": [14.92, 10.0, 12.0, 0.0, 10.0, 6.0]}, {"name": "Halil İbrahim Yavuz", "region": "Diyarbakır", "score": 52.47, "breakdown": [13.47, 8.0, 16.0, 0.0, 10.0, 5.0]}, {"name": "Ahmet Serhat Kaplan", "region": "Bursa", "score": 52.05, "breakdown": [16.05, 8.0, 12.0, 0.0, 10.0, 6.0]}, {"name": "Ömer Tulun", "region": "İzmir", "score": 51.58, "breakdown": [16.58, 8.0, 10.0, 0.0, 10.0, 7.0]}, {"name": "Erdem Akarsu", "region": "Asya", "score": 51.48, "breakdown": [15.48, 10.0, 10.0, 0.0, 10.0, 6.0]}, {"name": "Erdem Gülmez", "region": "Bursa", "score": 51.26, "breakdown": [16.26, 6.0, 12.0, 0.0, 10.0, 7.0]}, {"name": "Murat Eden", "region": "Avrupa", "score": 49.5, "breakdown": [17.5, 4.0, 12.0, 0.0, 10.0, 6.0]}, {"name": "Abdulkadir Ertekin", "region": "Avrupa", "score": 49.35, "breakdown": [15.35, 8.0, 10.0, 0.0, 10.0, 6.0]}, {"name": "Nevzat Akkuş", "region": "Diyarbakır", "score": 48.89, "breakdown": [11.89, 6.0, 14.0, 0.0, 10.0, 7.0]}, {"name": "Oğuz Filiz", "region": "Asya", "score": 48.68, "breakdown": [12.68, 8.0, 12.0, 0.0, 10.0, 6.0]}, {"name": "Asena Çakır", "region": "İzmir", "score": 48.6, "breakdown": [18.6, 0.0, 16.0, 0.0, 10.0, 4.0]}, {"name": "Furkan Eyvaz", "region": "Bursa", "score": 48.42, "breakdown": [16.42, 6.0, 10.0, 0.0, 10.0, 6.0]}, {"name": "Enes Doğanay", "region": "Bursa", "score": 48.0, "breakdown": [18.0, 4.0, 10.0, 0.0, 10.0, 6.0]}, {"name": "Coşkun Tuncer", "region": "Avrupa", "score": 47.94, "breakdown": [13.94, 8.0, 10.0, 0.0, 10.0, 6.0]}, {"name": "Berk Kutay Şen", "region": "Avrupa", "score": 47.76, "breakdown": [14.76, 8.0, 10.0, 0.0, 8.0, 7.0]}, {"name": "Adem Dokgöz", "region": "Avrupa", "score": 45.72, "breakdown": [15.72, 6.0, 10.0, 0.0, 8.0, 6.0]}, {"name": "Volkan Heriş", "region": "Avrupa", "score": 45.14, "breakdown": [15.14, 6.0, 12.0, 0.0, 6.0, 6.0]}, {"name": "Barış Gürkan Erez", "region": "Asya", "score": 34.14, "breakdown": [11.14, 6.0, 12.0, 0.0, 0.0, 5.0]}];
+let YENI = [], ESKI = [];
+let radarChart, regionRadarChart, top10Chart;
+const labels = ['Bütçe', 'Yenileme', 'Fesih', 'Rollout', 'Sabit', 'İşlem'];
 
-    let radarChart, regionRadarChart, top10Chart;
-    const labels = ['Bütçe', 'Yenileme', 'Fesih', 'Rollout', 'Sabit', 'İşlem'];
-
-    Chart.defaults.color = '#ccc';
-    Chart.defaults.borderColor = '#444';
-
-    function initCharts() {
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-        };
-
-        const radarOptions = {
-            ...commonOptions,
-            scales: { 
-                r: { 
-                    suggestMax: 25, 
-                    ticks: { display: false }, 
-                    grid: { color: '#333' },
-                    angleLines: { color: '#333' }
-                } 
-            }
-        };
-
-        radarChart = new Chart(document.getElementById('radarChart'), {
-            type: 'radar',
-            data: { labels: labels, datasets: [
-                { data: [0,0,0,0,0,0], backgroundColor: 'rgba(255, 203, 5, 0.2)', borderColor: '#FFCB05', borderWidth: 2 },
-                { data: [25, 20, 20, 15, 10, 10], backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', borderDash: [5,5], fill: true, pointRadius: 0 }
-            ]},
-            options: radarOptions
-        });
-
-        regionRadarChart = new Chart(document.getElementById('regionRadarChart'), {
-            type: 'radar',
-            data: { labels: labels, datasets: [
-                { data: [0,0,0,0,0,0], backgroundColor: 'rgba(0, 255, 0, 0.1)', borderColor: '#00ff00', borderWidth: 2 },
-                { data: [25, 20, 20, 15, 10, 10], backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', borderDash: [5,5], fill: true, pointRadius: 0 }
-            ]},
-            options: radarOptions
-        });
-
-        top10Chart = new Chart(document.getElementById('top10Chart'), {
-            type: 'bar',
-            data: { labels: [], datasets: [{ data: [], backgroundColor: '#0047BB', borderRadius: 5 }] },
-            options: { 
-                ...commonOptions, 
-                indexAxis: 'y',
-                scales: { 
-                    x: { grid: { display: false }, beginAtZero: true, max: 100 },
-                    y: { grid: { display: false } }
-                }
-            }
-        });
+// Tema Değiştirme
+function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('themeToggle');
+    if (body.getAttribute('data-theme') === 'light') {
+        body.removeAttribute('data-theme');
+        btn.innerText = 'GÜNDÜZ MODUNA GEÇ';
+        Chart.defaults.color = '#ccc';
+    } else {
+        body.setAttribute('data-theme', 'light');
+        btn.innerText = 'GECE MODUNA GEÇ';
+        Chart.defaults.color = '#333';
     }
+    runDashboard();
+}
 
-    function calculateStats(dataList, regionName) {
-        const filtered = regionName === 'Hepsi' ? dataList : dataList.filter(x => x.region === regionName);
-        if (filtered.length === 0) return { score: 0, breakdown: [0,0,0,0,0,0] };
-        const avgScore = filtered.reduce((acc, x) => acc + x.score, 0) / filtered.length;
-        const avgBreakdown = [0,1,2,3,4,5].map(i => filtered.reduce((acc, x) => acc + x.breakdown[i], 0) / filtered.length);
-        return { name: regionName === 'Hepsi' ? 'Türkiye' : regionName, score: avgScore.toFixed(2), breakdown: avgBreakdown.map(v => v.toFixed(2)) };
-    }
+async function init() {
+    const fetchCSV = url => new Promise(res => Papa.parse(url, {download: true, header: true, complete: d => res(d.data)}));
+    const [d1, d2] = await Promise.all([fetchCSV('data.csv'), fetchCSV('eski_data.csv')]);
+    const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
+        name: r['KİRALAMA SORUMLUSU'].trim(), region: r['BÖLGE'].trim(), score: parseFloat(r['Puan'] || 0),
+        breakdown: [parseFloat(r['BÜTÇE DEĞİŞİM']||0), parseFloat(r['YENİLEME']||0), parseFloat(r['FESİH İBRA']||0), parseFloat(r['ROLLOUT']||0), parseFloat(r['SABİT ARTIŞ']||0), parseFloat(r['GENEL İŞLEM']||0)]
+    }));
+    YENI = map(d1); ESKI = map(d2);
 
-    function filterPeople() {
-        const region = document.getElementById('regionSelect').value;
-        const pSelect = document.getElementById('personSelect');
-        pSelect.innerHTML = '';
-        const filtered = region === 'Hepsi' ? YENI_DONEM_VERISI : YENI_DONEM_VERISI.filter(x => x.region === region);
-        
-        filtered.sort((a,b) => b.score - a.score).forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.name; opt.innerHTML = p.name + " (" + p.score + ")";
-            pSelect.appendChild(opt);
-        });
+    const rSel = document.getElementById('regionSelect');
+    [...new Set(YENI.map(x => x.region))].sort().forEach(r => { let o = document.createElement('option'); o.value = r; o.text = r; rSel.add(o); });
 
-        updateTop10Chart();
-        updateRegionCard(region);
-        updateView();
-        updateStaffTable(filtered); // Tabloyu güncelle
-    }
+    initCharts();
+    runDashboard();
+}
 
-    function updateTop10Chart() {
-        const reg = document.getElementById('regionSelect').value;
-        const metricIdx = parseInt(document.getElementById('metricFilter').value);
-        const filtered = reg === 'Hepsi' ? YENI_DONEM_VERISI : YENI_DONEM_VERISI.filter(x => x.region === reg);
-        
-        const sorted = [...filtered].sort((a, b) => {
-            const valA = metricIdx === -1 ? a.score : a.breakdown[metricIdx];
-            const valB = metricIdx === -1 ? b.score : b.breakdown[metricIdx];
-            return valB - valA;
-        });
+function initCharts() {
+    const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+    const rdr = { ...common, scales: { r: { suggestMax: 25, ticks: { display: false }, grid: { color: 'rgba(128,128,128,0.2)' } } } };
 
-        const top10 = sorted.slice(0, 10);
-        top10Chart.data.labels = top10.map(x => x.name);
-        top10Chart.data.datasets[0].data = top10.map(x => (metricIdx === -1 ? x.score : x.breakdown[metricIdx]));
-        
-        const metricLabel = document.getElementById('metricFilter').options[document.getElementById('metricFilter').selectedIndex].text;
-        document.getElementById('top10Title').innerText = `${reg} - ${metricLabel} (En İyi 10)`;
-        top10Chart.update();
-    }
+    // RADAR HEDEF ALANI (Şeffaf tavan puanı)
+    const targetDataset = {
+        label: 'Hedef', data: [25, 20, 20, 15, 10, 10],
+        backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.2)', borderDash: [5, 5], fill: true, pointRadius: 0
+    };
 
-    function updateRegionCard(regionName) {
-        const cur = calculateStats(YENI_DONEM_VERISI, regionName);
-        const prev = calculateStats(ESKI_DONEM_VERISI, regionName);
-        document.getElementById('regKpiName').innerText = cur.name;
-        document.getElementById('regKpiScore').innerText = cur.score;
-        
-        const regions = ['Adana', 'Ankara', 'Antalya', 'Asya', 'Avrupa', 'Bursa', 'Diyarbakır', 'İzmir', 'Trabzon'];
-        const rankings = regions.map(r => ({ name: r, score: parseFloat(calculateStats(YENI_DONEM_VERISI, r).score) })).sort((a,b) => b.score - a.score);
-        const rank = regionName === 'Hepsi' ? '-' : (rankings.findIndex(r => r.name === regionName) + 1);
-        document.getElementById('regKpiRank').innerText = rank === '-' ? '-' : "#" + rank;
-        document.getElementById('regionTitle').innerText = `${cur.name} Bölge Karnesi`;
+    top10Chart = new Chart(document.getElementById('top10Chart'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#0047BB' }] }, options: { ...common, indexAxis: 'y' } });
+    radarChart = new Chart(document.getElementById('radarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#FFCB05', backgroundColor: 'rgba(255,203,5,0.2)', borderWidth:2 }, targetDataset] }, options: rdr });
+    regionRadarChart = new Chart(document.getElementById('regionRadarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#00ff00', backgroundColor: 'rgba(0,255,0,0.1)', borderWidth:2 }, targetDataset] }, options: rdr });
+}
 
-        setTrendUI(document.getElementById('regTotalTrend'), (cur.score - prev.score).toFixed(2));
-        regionRadarChart.data.datasets[0].data = cur.breakdown;
-        regionRadarChart.update();
-        
-        const list = document.getElementById('regTrendDetailList');
-        list.innerHTML = '';
-        cur.breakdown.forEach((val, i) => {
-            const diff = (val - prev.breakdown[i]).toFixed(2);
-            const tClass = diff > 0 ? 'trend-up' : (diff < 0 ? 'trend-down' : 'trend-stable');
-            list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div class="value-box"><span class="val-num">${val}</span><span class="trend-pill ${tClass}">${diff > 0 ? '▲ +' : (diff < 0 ? '▼ ' : '● ')}${diff}</span></div></li>`;
-        });
-    }
+function runDashboard() {
+    const reg = document.getElementById('regionSelect').value;
+    const pSel = document.getElementById('personSelect');
+    const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
 
-    function updateView() {
-        const name = document.getElementById('personSelect').value;
-        const cur = YENI_DONEM_VERISI.find(x => x.name === name);
-        const prev = ESKI_DONEM_VERISI.find(x => x.name === name) || { score: 0, breakdown: [0,0,0,0,0,0] };
-        if(!cur) return;
+    pSel.innerHTML = '';
+    filtered.sort((a,b) => b.score - a.score).forEach(p => {
+        let o = document.createElement('option'); o.value = p.name; o.text = `${p.name} (${p.score.toFixed(2)})`; pSel.add(o);
+    });
 
-        document.getElementById('personTitle').innerText = `${cur.name} Karnesi`;
-        document.getElementById('kpiRegion').innerText = cur.region;
-        document.getElementById('kpiScore').innerText = cur.score;
-        document.getElementById('kpiRank').innerText = "#" + (YENI_DONEM_VERISI.findIndex(x => x.name === name) + 1);
-        setTrendUI(document.getElementById('totalTrend'), (cur.score - prev.score).toFixed(2));
-        radarChart.data.datasets[0].data = cur.breakdown;
-        radarChart.update();
+    updateTop10Chart();
+    updateRegionCard(reg);
+    updateView();
+    updateStaffTable();
+}
 
-        const list = document.getElementById('trendDetailList');
-        list.innerHTML = '';
-        cur.breakdown.forEach((val, i) => {
-            const diff = (val - prev.breakdown[i]).toFixed(2);
-            const tClass = diff > 0 ? 'trend-up' : (diff < 0 ? 'trend-down' : 'trend-stable');
-            list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div class="value-box"><span class="val-num">${val}</span><span class="trend-pill ${tClass}">${diff > 0 ? '▲ +' : (diff < 0 ? '▼ ' : '● ')}${diff}</span></div></li>`;
-        });
-    }
+function updateTop10Chart() {
+    const reg = document.getElementById('regionSelect').value;
+    const mIdx = parseInt(document.getElementById('metricFilter').value);
+    const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
+    const sorted = [...filtered].sort((a,b) => (mIdx === -1 ? b.score - a.score : b.breakdown[mIdx] - a.breakdown[mIdx])).slice(0, 10);
 
-    function updateStaffTable(data) {
-        const tbody = document.querySelector('#staffTable tbody');
-        tbody.innerHTML = '';
-        data.sort((a,b) => b.score - a.score).forEach((p, idx) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${idx + 1}</td><td>${p.region}</td><td>${p.name}</td><td class="val-num">${p.score}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
+    top10Chart.data.labels = sorted.map(x => x.name);
+    top10Chart.data.datasets[0].data = sorted.map(x => (mIdx === -1 ? x.score : x.breakdown[mIdx]));
+    const mLab = document.getElementById('metricFilter').options[document.getElementById('metricFilter').selectedIndex].text;
+    document.getElementById('top10Title').innerText = `${reg} - En İyi 10 (${mLab})`;
+    top10Chart.update();
+}
 
-    function setTrendUI(el, val) {
-        el.className = 'trend-pill ' + (val > 0 ? 'trend-up' : (val < 0 ? 'trend-down' : 'trend-stable'));
-        el.innerText = (val > 0 ? '▲ +' : (val < 0 ? '▼ ' : '● ')) + val;
-    }
+function updateRegionCard(rName) {
+    const d = rName === 'Hepsi' ? YENI : YENI.filter(x => x.region === rName);
+    const oldD = rName === 'Hepsi' ? ESKI : ESKI.filter(x => x.region === rName);
+    const avg = arr => arr.length ? (arr.reduce((a, b) => a + b.score, 0) / arr.length) : 0;
+    const curA = avg(d), prevA = avg(oldD);
 
-    window.onload = () => { initCharts(); filterPeople(); };
+    document.getElementById('regionTitle').innerText = `${rName} Bölge Karnesi`;
+    document.getElementById('rKpis').innerHTML = `
+        <div class="kpi-box"><span>BÖLGE</span><h3>${rName === 'Hepsi' ? 'TR' : rName}</h3></div>
+        <div class="kpi-box"><span>ORTALAMA</span><h3>${curA.toFixed(2)}</h3></div>
+        <div class="kpi-box"><span>TREND</span><h3><span class="trend-pill ${curA-prevA>=0?'trend-up':'trend-down'}">${curA-prevA>=0?'▲ +':'▼ '}${(curA-prevA).toFixed(2)}</span></h3></div>`;
+
+    const brk = [0,1,2,3,4,5].map(i => (d.reduce((a, b) => a + b.breakdown[i], 0) / d.length));
+    const oldBrk = [0,1,2,3,4,5].map(i => (oldD.length ? (oldD.reduce((a, b) => a + b.breakdown[i], 0) / oldD.length) : 0));
+
+    regionRadarChart.data.datasets[0].data = brk.map(v => v.toFixed(2));
+    regionRadarChart.update();
+
+    const list = document.getElementById('regTrendDetailList');
+    list.innerHTML = '';
+    brk.forEach((v, i) => {
+        const diff = (v - (oldBrk[i] || 0)).toFixed(2);
+        list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div><span class="val-num">${v.toFixed(2)}</span><span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'+':''}${diff}</span></div></li>`;
+    });
+}
+
+function updateView() {
+    const n = document.getElementById('personSelect').value;
+    const p = YENI.find(x => x.name === n);
+    const old = ESKI.find(x => x.name === n) || { score: 0, breakdown: [0,0,0,0,0,0] };
+    if(!p) return;
+
+    document.getElementById('personTitle').innerText = `${p.name} Karnesi`;
+    document.getElementById('pKpis').innerHTML = `
+        <div class="kpi-box"><span>BÖLGE</span><h3>${p.region}</h3></div>
+        <div class="kpi-box"><span>PUAN</span><h3>${p.score.toFixed(2)}</h3></div>
+        <div class="kpi-box"><span>TREND</span><h3><span class="trend-pill ${p.score-old.score>=0?'trend-up':'trend-down'}">${p.score-old.score>=0?'▲ +':'▼ '}${(p.score-old.score).toFixed(2)}</span></h3></div>`;
+
+    radarChart.data.datasets[0].data = p.breakdown;
+    radarChart.update();
+
+    const list = document.getElementById('trendDetailList');
+    list.innerHTML = '';
+    p.breakdown.forEach((v, i) => {
+        const d = (v - old.breakdown[i]).toFixed(2);
+        list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div><span class="val-num" style="margin-right:10px">${v.toFixed(2)}</span><span class="trend-pill ${d>=0?'trend-up':'trend-down'}">${d>=0?'+':''}${d}</span></div></li>`;
+    });
+}
+
+function updateStaffTable() {
+    const tbody = document.querySelector('#staffTable tbody');
+    tbody.innerHTML = '';
+    YENI.sort((a,b)=>b.score-a.score).forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.region}</td><td>(${p.region}) ${p.name}</td><td class="val-num">${p.score.toFixed(2)}</td><td>${i+1}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function searchTable() {
+    const input = document.getElementById('staffSearch').value.toUpperCase();
+    const rows = document.querySelectorAll('#staffTable tbody tr');
+    rows.forEach(r => r.style.display = r.innerText.toUpperCase().includes(input) ? '' : 'none');
+}
+
+window.onload = init;
 </script>
 </body>
-</html> 
+</html>
