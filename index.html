@@ -119,94 +119,6 @@ border:1px solid var(--border);
 transition:background .3s;
 }
 
-.kpi-grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-top:15px;
-}
-
-.kpi-box{
-background:var(--kpi-bg);
-padding:12px;
-border-radius:10px;
-text-align:center;
-border:1px solid var(--border);
-}
-
-.kpi-box span{
-font-size:.6rem;
-color:#888;
-text-transform:uppercase;
-font-weight:bold;
-display:block;
-margin-bottom:5px;
-}
-
-.kpi-box h3{
-margin:0;
-color:var(--text);
-font-size:1rem;
-}
-
-.trend-pill{
-font-size:.75rem;
-font-weight:900;
-padding:2px 8px;
-border-radius:4px;
-margin-left:5px;
-}
-
-.trend-up{
-color:#000!important;
-background:var(--up-green);
-}
-
-.trend-down{
-color:#fff!important;
-background:var(--down-red);
-}
-
-.performance-list{
-list-style:none;
-padding:0;
-margin:20px 0 0;
-border-top:1px solid var(--border);
-}
-
-.list-item{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:12px 5px;
-border-bottom:1px solid var(--border);
-font-size:.9rem;
-}
-
-.val-num{
-font-weight:bold;
-color:var(--t-light);
-}
-
-.staff-table{
-width:100%;
-border-collapse:collapse;
-margin-top:15px;
-}
-
-.staff-table th{
-text-align:left;
-padding:12px;
-border-bottom:2px solid var(--border);
-color:var(--t-light);
-}
-
-.staff-table td{
-padding:10px;
-border-bottom:1px solid var(--border);
-color:var(--text);
-}
-
 .chart-container{
 position:relative;
 height:350px;
@@ -214,26 +126,9 @@ width:100%;
 }
 
 @media screen and (max-width:768px){
-
 body{flex-direction:column}
-
-.sidebar{
-width:100%;
-height:auto;
-position:relative;
-border-right:none;
-}
-
-.content{
-margin-left:0;
-width:100%;
-padding:15px;
-}
-
-.kpi-grid{
-grid-template-columns:1fr 1fr;
-}
-
+.sidebar{width:100%;height:auto;position:relative;border-right:none;}
+.content{margin-left:0;width:100%;padding:15px;}
 }
 </style>
 </head>
@@ -241,9 +136,7 @@ grid-template-columns:1fr 1fr;
 <body>
 
 <div class="sidebar">
-
 <img src="image_3.png" class="sidebar-logo">
-
 <h2>DÖNEMSEL ANALİZ</h2>
 
 <label>BÖLGE FİLTRESİ</label>
@@ -263,61 +156,46 @@ grid-template-columns:1fr 1fr;
 </select>
 
 <label>PERSONEL SEÇİMİ</label>
-<select id="personSelect" onchange="updateView()"></select>
+<select id="personSelect" onchange="updateTop10Chart()"></select>
 
 <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">GÜNDÜZ MODUNA GEÇ</button>
-
 </div>
 
 <div class="content">
-
 <div class="card">
 <h3 id="top10Title" style="color:var(--t-light)">En İyi 10 Performans</h3>
 <div class="chart-container">
 <canvas id="top10Chart"></canvas>
 </div>
 </div>
-
 </div>
 
 <script>
-
 let YENI=[];
 let ESKI=[];
-let radarChart,regionRadarChart,top10Chart;
-
+let top10Chart;
 const labels=['Bütçe','Yenileme','Fesih','Rollout','Sabit','İşlem'];
 
 function toggleTheme(){
-
 const body=document.body;
 const btn=document.getElementById('themeToggle');
-
 if(body.getAttribute('data-theme')==='light'){
 body.removeAttribute('data-theme');
 btn.innerText='GÜNDÜZ MODUNA GEÇ';
-Chart.defaults.color='#ccc';
-}
-else{
+} else {
 body.setAttribute('data-theme','light');
 btn.innerText='GECE MODUNA GEÇ';
-Chart.defaults.color='#333';
 }
-
-runDashboard();
-
+updateTop10Chart();
 }
 
 async function init(){
-
 const fetchCSV=url=>new Promise(res=>
-
 Papa.parse(url+'?v='+Date.now(),{
 download:true,
 header:true,
 complete:d=>res(d.data)
 })
-
 );
 
 const[d1,d2]=await Promise.all([
@@ -326,11 +204,9 @@ fetchCSV('eski_data.csv')
 ]);
 
 const map=d=>d.filter(r=>r['KİRALAMA SORUMLUSU']).map(r=>({
-
 name:r['KİRALAMA SORUMLUSU'].trim(),
 region:r['BÖLGE'].trim(),
 score:parseFloat(r['Puan']||0),
-
 breakdown:[
 parseFloat(r['BÜTÇE DEĞİŞİM']||0),
 parseFloat(r['YENİLEME']||0),
@@ -339,18 +215,70 @@ parseFloat(r['ROLLOUT']||0),
 parseFloat(r['SABİT ARTIŞ']||0),
 parseFloat(r['GENEL İŞLEM']||0)
 ]
-
 }));
 
 YENI=map(d1);
 ESKI=map(d2);
 
-runDashboard();
+// Bölgeleri Select'e doldur
+const regions = [...new Set(YENI.map(p => p.region))];
+const regSelect = document.getElementById('regionSelect');
+regions.forEach(r => {
+    let opt = document.createElement('option');
+    opt.value = r; opt.innerText = r;
+    regSelect.appendChild(opt);
+});
 
+runDashboard();
+}
+
+function runDashboard(){
+const region = document.getElementById('regionSelect').value;
+let filtered = region === "Hepsi" ? YENI : YENI.filter(p => p.region === region);
+
+const pSelect = document.getElementById('personSelect');
+pSelect.innerHTML = '<option value="Hepsi">Tüm Personel</option>';
+filtered.forEach(p => {
+    let opt = document.createElement('option');
+    opt.value = p.name; opt.innerText = p.name;
+    pSelect.appendChild(opt);
+});
+
+updateTop10Chart();
+}
+
+function updateTop10Chart(){
+const metricIdx = parseInt(document.getElementById('metricFilter').value);
+const region = document.getElementById('regionSelect').value;
+const person = document.getElementById('personSelect').value;
+
+let list = region === "Hepsi" ? [...YENI] : YENI.filter(p => p.region === region);
+if(person !== "Hepsi") list = list.filter(p => p.name === person);
+
+list.sort((a,b) => {
+    if(metricIdx === -1) return b.score - a.score;
+    return b.breakdown[metricIdx] - a.breakdown[metricIdx];
+});
+
+const top10 = list.slice(0, 10);
+const ctx = document.getElementById('top10Chart').getContext('2d');
+if(top10Chart) top10Chart.destroy();
+
+top10Chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: top10.map(p => p.name),
+        datasets: [{
+            label: 'Performans Puanı',
+            data: top10.map(p => metricIdx === -1 ? p.score : p.breakdown[metricIdx]),
+            backgroundColor: '#0047BB'
+        }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+});
 }
 
 window.onload=init;
-
 </script>
 
 </body>
