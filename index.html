@@ -11,38 +11,46 @@
             --t-blue: #001a35; --t-yellow: #FFCB05; --t-light: #0047BB;
             --bg: #0f0f0f; --card-bg: #1a1a1a; --text: #ffffff;
             --up-green: #00ff00; --down-red: #ff3333; --border: #333; --kpi-bg: #2d2d2d;
+            --sidebar-bg: #001a35; --input-bg: #2d2d2d; --input-text: white;
         }
         [data-theme="light"] {
             --bg: #f4f7f6; --card-bg: #ffffff; --text: #1a1a1a;
             --border: #ddd; --kpi-bg: #f8f9fa;
+            --sidebar-bg: #ffffff; --input-bg: #ffffff; --input-text: #1a1a1a;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; }
-        .sidebar { width: 320px; background: var(--t-blue); height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box; overflow-y: auto; border-right: 1px solid #333; z-index: 1000; }
+
+        .sidebar {
+            width: 320px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
+            padding: 25px; position: fixed; box-sizing: border-box; overflow-y: auto;
+            border-right: 1px solid var(--border); z-index: 1000; transition: all 0.3s ease;
+        }
+        [data-theme="light"] .sidebar { color: #1a1a1a; }
+
         .sidebar-logo { width: 100%; max-width: 250px; margin: 0 auto 30px; display: block; }
         .sidebar h2 { color: var(--t-yellow); border-bottom: 2px solid var(--t-yellow); padding-bottom: 10px; margin-bottom: 25px; font-size: 1.1rem; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 0.85rem; color: #ccc; }
-        select, .search-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; font-size: 0.95rem; background: #2d2d2d; color: white; cursor: pointer; outline: none; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 0.85rem; color: #888; }
+
+        select, .search-box {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            margin-bottom: 15px; font-size: 0.95rem; background: var(--input-bg);
+            color: var(--input-text); cursor: pointer; outline: none; transition: all 0.3s ease;
+        }
+
         .theme-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--t-yellow); color: #000; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 0.9rem; }
 
         .content { margin-left: 320px; padding: 30px; width: calc(100% - 320px); box-sizing: border-box; }
 
         .main-header {
-            background: var(--t-blue);
-            color: var(--t-yellow);
-            padding: 20px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border-left: 8px solid var(--t-yellow);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--t-blue); color: var(--t-yellow); padding: 20px 25px; border-radius: 12px;
+            margin-bottom: 25px; border-left: 8px solid var(--t-yellow); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; justify-content: space-between; align-items: center;
         }
         .main-header h1 { margin: 0; font-size: 1.6rem; letter-spacing: 1px; text-transform: uppercase; }
         .update-info { color: white; font-size: 0.85rem; font-weight: bold; opacity: 0.8; }
         #lastUpdate { color: var(--t-yellow); }
 
-        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; border: 1px solid var(--border); }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; border: 1px solid var(--border); transition: background 0.3s; }
         .kpi-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; margin-top: 15px; }
         .kpi-box { background: var(--kpi-bg); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
         .kpi-box span { font-size: 0.7rem; color: #888; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; display: block;}
@@ -54,7 +62,7 @@
 
         .chart-container { position: relative; height: 380px; width: 100%; margin-top: 15px; }
         .performance-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); overflow-y: auto; max-height: 250px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
         .val-num { font-weight: bold; color: var(--t-light); margin-right: 5px; }
 
         .staff-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -78,6 +86,7 @@
     <h2>FİLTRELEME</h2>
     <label>BÖLGE FİLTRESİ</label>
     <select id="regionSelect" onchange="runDashboard()"><option value="Hepsi">Tüm Türkiye</option></select>
+
     <label>SIRALAMA KRİTERİ</label>
     <select id="metricFilter" onchange="updateTop10Chart()">
         <option value="-1">Toplam Puan</option>
@@ -94,8 +103,10 @@
         <option value="10">Şikayet Kapama</option>
         <option value="11">Tekrarlama</option>
     </select>
+
     <label>PERSONEL SEÇİMİ</label>
     <select id="personSelect" onchange="updateView()"></select>
+
     <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">GÜNDÜZ MODUNA GEÇ</button>
 </div>
 
@@ -106,7 +117,7 @@
     </div>
 
     <div class="card">
-        <h3 id="top10Title" style="color:var(--t-light)">TÜRKİYE - SIRALAMA </h3>
+        <h3 id="top10Title" style="color:var(--t-light)">TÜRKİYE - SIRALAMA</h3>
         <div class="chart-container"><canvas id="top10Chart"></canvas></div>
     </div>
 
@@ -156,7 +167,7 @@ function toggleTheme() {
 
 async function init() {
     const fetchCSV = url => new Promise(res => Papa.parse(url + '?v=' + Date.now(), {download: true, header: true, complete: d => res(d.data)}));
-    const [d1, d2] = await Promise.all([fetchCSV('data2.csv'), fetchCSV('eski_data.csv')]);
+    const [d1, d2] = await Promise.all([fetchCSV('data2.csv'), fetchCSV('eski_data2.csv')]);
 
     const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
         name: r['KİRALAMA SORUMLUSU'].trim(),
@@ -214,8 +225,8 @@ function runDashboard() {
     const pSel = document.getElementById('personSelect');
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
 
-    // Dinamik Başlık Güncelleme
-    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - SIRALAMA ";
+    // Dinamik Başlık Güncelleme (Hepsi yerine TÜRKİYE)
+    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - SIRALAMA";
 
     pSel.innerHTML = '';
     filtered.sort((a,b) => b.score - a.score).forEach(p => {
@@ -239,7 +250,6 @@ function updateTop10Chart() {
 
     top10Chart.data.labels = sorted.map(x => x.name);
     top10Chart.data.datasets[0].data = scores;
-    // Farkların netleşmesi için dinamik ölçeklendirme
     top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
     top10Chart.update();
 }
@@ -255,7 +265,7 @@ function updateRegionCard(rName) {
     const regionAvgs = allRegions.map(r => ({ name: r, avg: avg(YENI.filter(x => x.region === r)) })).sort((a,b) => b.avg - a.avg);
     const rRank = regionAvgs.findIndex(x => x.name === rName) + 1;
 
-    document.getElementById('regionTitle').innerText = `${rName} Bölge Karnesi`;
+    document.getElementById('regionTitle').innerText = `${rName === 'Hepsi' ? 'Türkiye' : rName} Bölge Karnesi`;
     document.getElementById('rKpis').innerHTML = `
         <div class="kpi-box"><span>BÖLGE</span><h3>${rName === 'Hepsi' ? 'TR' : rName}</h3></div>
         <div class="kpi-box"><span>PUAN / TREND</span><h3>${curA.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
@@ -314,4 +324,3 @@ window.onload = init;
 </script>
 </body>
 </html>
-
