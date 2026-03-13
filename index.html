@@ -26,7 +26,6 @@
 
         .content { margin-left: 320px; padding: 30px; width: calc(100% - 320px); box-sizing: border-box; }
 
-        /* Ana Başlık Tasarımı - Güncellendi */
         .main-header {
             background: var(--t-blue);
             color: var(--t-yellow);
@@ -107,7 +106,7 @@
     </div>
 
     <div class="card">
-        <h3 id="top10Title" style="color:var(--t-light)">SIRALAMA</h3>
+        <h3 id="top10Title" style="color:var(--t-light)">TÜRKİYE - SIRALAMA </h3>
         <div class="chart-container"><canvas id="top10Chart"></canvas></div>
     </div>
 
@@ -140,7 +139,6 @@
 let YENI = [], ESKI = [];
 let radarChart, regionRadarChart, top10Chart;
 const labels = ['Bütçe Değ.', 'Yenileme', 'Fesih İbra', 'Rollout', 'Sabit Art.', 'Genel İşlem', '5G & Fiber', 'Teminat İade', 'Gecikme F.', 'Biyo. İmza', 'Şikayet K.', 'Tekrarlama'];
-// Senin verdiğin Karne Ağırlıkları
 const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
 function toggleTheme() {
@@ -182,7 +180,6 @@ async function init() {
     initCharts();
     runDashboard();
 
-    // Tarih Güncellemesi
     const now = new Date();
     document.getElementById('lastUpdate').innerText = now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
 }
@@ -217,6 +214,9 @@ function runDashboard() {
     const pSel = document.getElementById('personSelect');
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
 
+    // Dinamik Başlık Güncelleme
+    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - EN İYİ 10 PERFORMANS";
+
     pSel.innerHTML = '';
     filtered.sort((a,b) => b.score - a.score).forEach(p => {
         let o = document.createElement('option'); o.value = p.name; o.text = `${p.name} (${p.score.toFixed(2)})`; pSel.add(o);
@@ -239,6 +239,7 @@ function updateTop10Chart() {
 
     top10Chart.data.labels = sorted.map(x => x.name);
     top10Chart.data.datasets[0].data = scores;
+    // Farkların netleşmesi için dinamik ölçeklendirme
     top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
     top10Chart.update();
 }
@@ -313,4 +314,3 @@ window.onload = init;
 </script>
 </body>
 </html>
-
