@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Turkcell 6 Sigma Performance Dashboard</title>
+    <title>Turkcell 12 Focus Performance Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
@@ -23,26 +23,52 @@
         label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 0.85rem; color: #ccc; }
         select, .search-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; font-size: 0.95rem; background: #2d2d2d; color: white; cursor: pointer; outline: none; }
         .theme-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--t-yellow); color: #000; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 0.9rem; }
+
         .content { margin-left: 320px; padding: 30px; width: calc(100% - 320px); box-sizing: border-box; }
-        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; border: 1px solid var(--border); transition: background 0.3s; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .kpi-box { background: var(--kpi-bg); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
-        .kpi-box span { font-size: 0.6rem; color: #888; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 5px; }
-        .kpi-box h3 { margin: 0; color: var(--text); font-size: 1rem; }
-        .trend-pill { font-size: 0.75rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; margin-left: 5px; }
+
+        /* Ana Başlık Tasarımı - Güncellendi */
+        .main-header {
+            background: var(--t-blue);
+            color: var(--t-yellow);
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 8px solid var(--t-yellow);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .main-header h1 { margin: 0; font-size: 1.6rem; letter-spacing: 1px; text-transform: uppercase; }
+        .update-info { color: white; font-size: 0.85rem; font-weight: bold; opacity: 0.8; }
+        #lastUpdate { color: var(--t-yellow); }
+
+        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; border: 1px solid var(--border); }
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; margin-top: 15px; }
+        .kpi-box { background: var(--kpi-bg); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .kpi-box span { font-size: 0.7rem; color: #888; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; display: block;}
+        .kpi-box h3 { margin: 0; color: var(--text); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        .trend-pill { font-size: 0.8rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
         .trend-up { color: #000 !important; background: var(--up-green); }
         .trend-down { color: #fff !important; background: var(--down-red); }
-        .performance-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .val-num { font-weight: bold; color: var(--t-light); }
+
+        .chart-container { position: relative; height: 380px; width: 100%; margin-top: 15px; }
+        .performance-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); overflow-y: auto; max-height: 250px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .val-num { font-weight: bold; color: var(--t-light); margin-right: 5px; }
+
         .staff-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .staff-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--t-light); }
         .staff-table td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
-        .chart-container { position: relative; height: 350px; width: 100%; }
+        .staff-table tbody tr { cursor: pointer; transition: background 0.2s; }
+        .staff-table tbody tr:hover { background: rgba(255, 203, 5, 0.1); }
+
         @media screen and (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: relative; border-right: none; }
             .content { margin-left: 0; width: 100%; padding: 15px; }
+            .main-header { flex-direction: column; text-align: center; gap: 10px; }
         }
     </style>
 </head>
@@ -50,7 +76,7 @@
 
 <div class="sidebar">
     <img src="./image_3.png" alt="Turkcell Logo" class="sidebar-logo">
-    <h2>DÖNEMSEL ANALİZ</h2>
+    <h2>FİLTRELEME</h2>
     <label>BÖLGE FİLTRESİ</label>
     <select id="regionSelect" onchange="runDashboard()"><option value="Hepsi">Tüm Türkiye</option></select>
     <label>SIRALAMA KRİTERİ</label>
@@ -62,6 +88,12 @@
         <option value="3">Rollout</option>
         <option value="4">Sabit Artış</option>
         <option value="5">Genel İşlem</option>
+        <option value="6">5G & Fiber Kurulum</option>
+        <option value="7">Teminat İade</option>
+        <option value="8">Gecikme Faizi</option>
+        <option value="9">Biyometrik İmza</option>
+        <option value="10">Şikayet Kapama</option>
+        <option value="11">Tekrarlama</option>
     </select>
     <label>PERSONEL SEÇİMİ</label>
     <select id="personSelect" onchange="updateView()"></select>
@@ -69,10 +101,16 @@
 </div>
 
 <div class="content">
+    <div class="main-header">
+        <h1>12 FOCUS Analiz Paneli</h1>
+        <div class="update-info">GÜNCELLEME TARİHİ: <span id="lastUpdate">-</span></div>
+    </div>
+
     <div class="card">
         <h3 id="top10Title" style="color:var(--t-light)">En İyi 10 Performans</h3>
         <div class="chart-container"><canvas id="top10Chart"></canvas></div>
     </div>
+
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div class="card">
             <h3 id="personTitle" style="color:var(--t-light)">Kişi Karnesi</h3>
@@ -87,8 +125,9 @@
             <ul class="performance-list" id="regTrendDetailList"></ul>
         </div>
     </div>
+
     <div class="card">
-        <h3 style="color:var(--t-light)">Personel Sıralama Listesi</h3>
+        <h3 style="color:var(--t-light)">Personel Sıralama Listesi (Detay için isme tıklayın)</h3>
         <input type="text" id="staffSearch" class="search-box" placeholder="İsim veya Bölge Ara..." onkeyup="searchTable()">
         <table class="staff-table" id="staffTable">
             <thead><tr><th>Bölge</th><th>İsim Soyisim</th><th>Puan</th><th>Sıra</th></tr></thead>
@@ -100,7 +139,9 @@
 <script>
 let YENI = [], ESKI = [];
 let radarChart, regionRadarChart, top10Chart;
-const labels = ['Bütçe', 'Yenileme', 'Fesih', 'Rollout', 'Sabit', 'İşlem'];
+const labels = ['Bütçe Değ.', 'Yenileme', 'Fesih İbra', 'Rollout', 'Sabit Art.', 'Genel İşlem', '5G & Fiber', 'Teminat İade', 'Gecikme F.', 'Biyo. İmza', 'Şikayet K.', 'Tekrarlama'];
+// Senin verdiğin Karne Ağırlıkları
+const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
 function toggleTheme() {
     const body = document.body;
@@ -117,37 +158,58 @@ function toggleTheme() {
 
 async function init() {
     const fetchCSV = url => new Promise(res => Papa.parse(url + '?v=' + Date.now(), {download: true, header: true, complete: d => res(d.data)}));
-    const [d1, d2] = await Promise.all([fetchCSV('data.csv'), fetchCSV('eski_data.csv')]);
-    
+    const [d1, d2] = await Promise.all([fetchCSV('data2.csv'), fetchCSV('eski_data.csv')]);
+
     const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
-        name: r['KİRALAMA SORUMLUSU'].trim(), 
-        region: r['BÖLGE'].trim(), 
+        name: r['KİRALAMA SORUMLUSU'].trim(),
+        region: r['BÖLGE'] ? r['BÖLGE'].trim() : 'Bilinmiyor',
         score: parseFloat(r['Puan'] || 0),
         breakdown: [
-            parseFloat(r['BÜTÇE DEĞİŞİM']||0), parseFloat(r['YENİLEME']||0), 
-            parseFloat(r['FESİH İBRA']||0), parseFloat(r['ROLLOUT']||0), 
-            parseFloat(r['SABİT ARTIŞ']||0), parseFloat(r['GENEL İŞLEM']||0)
+            parseFloat(r['BÜTÇE DEĞİŞİM']||0), parseFloat(r['YENİLEME']||0), parseFloat(r['FESİH İBRA']||0),
+            parseFloat(r['ROLLOUT']||0), parseFloat(r['SABİT ARTIŞ']||0), parseFloat(r['GENEL İŞLEM']||0),
+            parseFloat(r['5G KURULUM - FİBER SİTE']||0), parseFloat(r['TEMİNAT İADE']||0), parseFloat(r['GECİKME FAİZİ']||0),
+            parseFloat(r['BİYOMETRİK İMZA']||0), parseFloat(r['MÜŞTERİ ŞİKAYETLERİ KAPAMA']||0), parseFloat(r['TEKRARLAMA']||0)
         ]
     }));
 
     YENI = map(d1); ESKI = map(d2);
 
     const rSel = document.getElementById('regionSelect');
-    [...new Set(YENI.map(x => x.region))].sort().forEach(r => { 
-        let o = document.createElement('option'); o.value = r; o.text = r; rSel.add(o); 
+    [...new Set(YENI.map(x => x.region))].sort().forEach(r => {
+        let o = document.createElement('option'); o.value = r; o.text = r; rSel.add(o);
     });
 
     initCharts();
     runDashboard();
+
+    // Tarih Güncellemesi
+    const now = new Date();
+    document.getElementById('lastUpdate').innerText = now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
 }
 
 function initCharts() {
     const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
-    const rdr = { ...common, scales: { r: { suggestMax: 25, ticks: { display: false }, grid: { color: 'rgba(128,128,128,0.2)' } } } };
+    const rdrOptions = {
+        scales: { r: { suggestMax: 25, ticks: { display: false }, grid: { color: 'rgba(128,128,128,0.2)' } } },
+        ...common
+    };
+
+    const targetDataset = {
+        label: 'Hedef', data: focusMaxWeights,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderDash: [5, 5], fill: true, pointRadius: 0
+    };
 
     top10Chart = new Chart(document.getElementById('top10Chart'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#0047BB' }] }, options: { ...common, indexAxis: 'y' } });
-    radarChart = new Chart(document.getElementById('radarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#FFCB05', backgroundColor: 'rgba(255,203,5,0.2)', borderWidth:2 }] }, options: rdr });
-    regionRadarChart = new Chart(document.getElementById('regionRadarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#00ff00', backgroundColor: 'rgba(0,255,0,0.1)', borderWidth:2 }] }, options: rdr });
+    radarChart = new Chart(document.getElementById('radarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#FFCB05', backgroundColor: 'rgba(255,203,5,0.2)', borderWidth: 2 }, targetDataset] }, options: rdrOptions });
+    regionRadarChart = new Chart(document.getElementById('regionRadarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#00ff00', backgroundColor: 'rgba(0,255,0,0.1)', borderWidth: 2 }, targetDataset] }, options: rdrOptions });
+}
+
+function selectFromTable(name, region) {
+    document.getElementById('regionSelect').value = region;
+    runDashboard();
+    document.getElementById('personSelect').value = name;
+    updateView();
 }
 
 function runDashboard() {
@@ -157,8 +219,7 @@ function runDashboard() {
 
     pSel.innerHTML = '';
     filtered.sort((a,b) => b.score - a.score).forEach(p => {
-        let o = document.createElement('option'); o.value = p.name; 
-        o.text = `${p.name} (${p.score.toFixed(2)})`; pSel.add(o);
+        let o = document.createElement('option'); o.value = p.name; o.text = `${p.name} (${p.score.toFixed(2)})`; pSel.add(o);
     });
 
     updateTop10Chart();
@@ -173,10 +234,12 @@ function updateTop10Chart() {
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
     const sorted = [...filtered].sort((a,b) => (mIdx === -1 ? b.score - a.score : b.breakdown[mIdx] - a.breakdown[mIdx])).slice(0, 10);
 
+    const scores = sorted.map(x => (mIdx === -1 ? x.score : x.breakdown[mIdx]));
+    const minV = Math.floor(Math.min(...scores) - 1);
+
     top10Chart.data.labels = sorted.map(x => x.name);
-    top10Chart.data.datasets[0].data = sorted.map(x => (mIdx === -1 ? x.score : x.breakdown[mIdx]));
-    const mLab = document.getElementById('metricFilter').options[document.getElementById('metricFilter').selectedIndex].text;
-    document.getElementById('top10Title').innerText = `${reg} - En İyi 10 (${mLab})`;
+    top10Chart.data.datasets[0].data = scores;
+    top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
     top10Chart.update();
 }
 
@@ -185,48 +248,48 @@ function updateRegionCard(rName) {
     const oldD = rName === 'Hepsi' ? ESKI : ESKI.filter(x => x.region === rName);
     const avg = arr => arr.length ? (arr.reduce((sum, b) => sum + b.score, 0) / arr.length) : 0;
     const curA = avg(d), prevA = avg(oldD);
+    const diff = (curA - prevA).toFixed(2);
+
+    const allRegions = [...new Set(YENI.map(x => x.region))];
+    const regionAvgs = allRegions.map(r => ({ name: r, avg: avg(YENI.filter(x => x.region === r)) })).sort((a,b) => b.avg - a.avg);
+    const rRank = regionAvgs.findIndex(x => x.name === rName) + 1;
 
     document.getElementById('regionTitle').innerText = `${rName} Bölge Karnesi`;
     document.getElementById('rKpis').innerHTML = `
         <div class="kpi-box"><span>BÖLGE</span><h3>${rName === 'Hepsi' ? 'TR' : rName}</h3></div>
-        <div class="kpi-box"><span>ORTALAMA</span><h3>${curA.toFixed(2)}</h3></div>
-        <div class="kpi-box"><span>TREND</span><h3><span class="trend-pill ${curA-prevA>=0?'trend-up':'trend-down'}">${curA-prevA>=0?'▲ +':'▼ '}${(curA-prevA).toFixed(2)}</span></h3></div>`;
-    
-    const brk = [0,1,2,3,4,5].map(i => (d.reduce((a, b) => a + b.breakdown[i], 0) / d.length));
-    const oldBrk = [0,1,2,3,4,5].map(i => (oldD.length ? (oldD.reduce((a, b) => a + b.breakdown[i], 0) / oldD.length) : 0));
+        <div class="kpi-box"><span>PUAN / TREND</span><h3>${curA.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
+        <div class="kpi-box"><span>SIRALAMA</span><h3>${rName === 'Hepsi' ? '-' : rRank + ' / ' + allRegions.length}</h3></div>`;
 
-    regionRadarChart.data.datasets[0].data = brk.map(v => v.toFixed(2));
+    const brk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (d.reduce((a, b) => a + b.breakdown[i], 0) / d.length));
+    regionRadarChart.data.datasets[0].data = brk;
     regionRadarChart.update();
 
     const list = document.getElementById('regTrendDetailList');
     list.innerHTML = '';
-    brk.forEach((v, i) => {
-        const diff = (v - (oldBrk[i] || 0)).toFixed(2);
-        list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div><span class="val-num">${v.toFixed(2)}</span><span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'+':''}${diff}</span></div></li>`;
-    });
+    brk.forEach((v, i) => list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><span class="val-num">${v.toFixed(2)} / ${focusMaxWeights[i]}</span></li>`);
 }
 
 function updateView() {
     const n = document.getElementById('personSelect').value;
     const p = YENI.find(x => x.name === n);
-    const old = ESKI.find(x => x.name === n) || { score: 0, breakdown: [0,0,0,0,0,0] };
+    const old = ESKI.find(x => x.name === n) || { score: 0, breakdown: new Array(12).fill(0) };
     if(!p) return;
+
+    const pRank = [...YENI].sort((a,b) => b.score - a.score).findIndex(x => x.name === n) + 1;
+    const diff = (p.score - old.score).toFixed(2);
 
     document.getElementById('personTitle').innerText = `${p.name} Karnesi`;
     document.getElementById('pKpis').innerHTML = `
         <div class="kpi-box"><span>BÖLGE</span><h3>${p.region}</h3></div>
-        <div class="kpi-box"><span>PUAN</span><h3>${p.score.toFixed(2)}</h3></div>
-        <div class="kpi-box"><span>TREND</span><h3><span class="trend-pill ${p.score-old.score>=0?'trend-up':'trend-down'}">${p.score-old.score>=0?'▲ +':'▼ '}${(p.score-old.score).toFixed(2)}</span></h3></div>`;
-    
+        <div class="kpi-box"><span>PUAN / TREND</span><h3>${p.score.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
+        <div class="kpi-box"><span>GENEL SIRALAMA</span><h3>${pRank} / ${YENI.length}</h3></div>`;
+
     radarChart.data.datasets[0].data = p.breakdown;
     radarChart.update();
 
     const list = document.getElementById('trendDetailList');
     list.innerHTML = '';
-    p.breakdown.forEach((v, i) => {
-        const d = (v - old.breakdown[i]).toFixed(2);
-        list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div><span class="val-num" style="margin-right:10px">${v.toFixed(2)}</span><span class="trend-pill ${d>=0?'trend-up':'trend-down'}">${d>=0?'+':''}${d}</span></div></li>`;
-    });
+    p.breakdown.forEach((v, i) => list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><span class="val-num">${v.toFixed(2)} / ${focusMaxWeights[i]}</span></li>`);
 }
 
 function updateStaffTable() {
@@ -234,7 +297,8 @@ function updateStaffTable() {
     tbody.innerHTML = '';
     YENI.sort((a,b)=>b.score-a.score).forEach((p, i) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${p.region}</td><td>(${p.region}) ${p.name}</td><td class="val-num">${p.score.toFixed(2)}</td><td>${i+1}</td>`;
+        tr.onclick = () => selectFromTable(p.name, p.region);
+        tr.innerHTML = `<td>${p.region}</td><td>${p.name}</td><td class="val-num">${p.score.toFixed(2)}</td><td>${i+1}</td>`;
         tbody.appendChild(tr);
     });
 }
@@ -249,5 +313,3 @@ window.onload = init;
 </script>
 </body>
 </html>
-
-
