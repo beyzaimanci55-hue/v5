@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turkcell 12 Focus Performance Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -18,60 +18,58 @@
             --border: #ddd; --kpi-bg: #f8f9fa;
             --sidebar-bg: #ffffff; --input-bg: #ffffff; --input-text: #1a1a1a;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; font-size: 14px; }
 
         .sidebar {
-            width: 320px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
-            padding: 25px; position: fixed; box-sizing: border-box; overflow-y: auto;
+            width: 280px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
+            padding: 20px; position: fixed; box-sizing: border-box; overflow-y: auto;
             border-right: 1px solid var(--border); z-index: 1000; transition: all 0.3s ease;
         }
         [data-theme="light"] .sidebar { color: #1a1a1a; }
-
-        .sidebar-logo { width: 100%; max-width: 250px; margin: 0 auto 30px; display: block; }
-        .sidebar h2 { color: var(--t-yellow); border-bottom: 2px solid var(--t-yellow); padding-bottom: 10px; margin-bottom: 25px; font-size: 1.1rem; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 0.85rem; color: #888; }
+        .sidebar-logo { width: 85%; max-width: 200px; margin: 0 auto 25px; display: block; }
+        .sidebar h2 { color: var(--t-yellow); border-bottom: 2px solid var(--t-yellow); padding-bottom: 8px; margin-bottom: 20px; font-size: 1rem; }
+        label { display: block; margin: 12px 0 4px; font-weight: bold; font-size: 0.75rem; color: #888; text-transform: uppercase; }
 
         select, .search-box {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
-            margin-bottom: 15px; font-size: 0.95rem; background: var(--input-bg);
+            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
+            margin-bottom: 12px; font-size: 0.85rem; background: var(--input-bg);
             color: var(--input-text); cursor: pointer; outline: none; transition: all 0.3s ease;
         }
 
-        .theme-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--t-yellow); color: #000; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 0.9rem; }
+        .theme-btn { width: 100%; padding: 10px; border-radius: 6px; border: none; background: var(--t-yellow); color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 0.8rem; }
 
-        .content { margin-left: 320px; padding: 30px; width: calc(100% - 320px); box-sizing: border-box; }
+        .content { margin-left: 280px; padding: 25px; width: calc(100% - 280px); box-sizing: border-box; }
 
         .main-header {
-            background: var(--t-blue); color: var(--t-yellow); padding: 20px 25px; border-radius: 12px;
-            margin-bottom: 25px; border-left: 8px solid var(--t-yellow); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: var(--t-blue); color: var(--t-yellow); padding: 15px 20px; border-radius: 10px;
+            margin-bottom: 20px; border-left: 6px solid var(--t-yellow); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .main-header h1 { margin: 0; font-size: 1.6rem; letter-spacing: 1px; text-transform: uppercase; }
-        .update-info { color: white; font-size: 0.85rem; font-weight: bold; opacity: 0.8; }
-        #lastUpdate { color: var(--t-yellow); }
+        .main-header h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.5px; text-transform: uppercase; }
+        .update-info { color: white; font-size: 0.75rem; font-weight: bold; opacity: 0.7; }
 
-        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; border: 1px solid var(--border); transition: background 0.3s; }
-        .kpi-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; margin-top: 15px; }
-        .kpi-box { background: var(--kpi-bg); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
-        .kpi-box span { font-size: 0.7rem; color: #888; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; display: block;}
-        .kpi-box h3 { margin: 0; color: var(--text); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .card { background: var(--card-bg); border-radius: 10px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 20px; border: 1px solid var(--border); transition: background 0.3s; }
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 10px; margin-top: 12px; }
+        .kpi-box { background: var(--kpi-bg); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .kpi-box span { font-size: 0.6rem; color: #888; text-transform: uppercase; font-weight: bold; margin-bottom: 3px; display: block;}
+        .kpi-box h3 { margin: 0; color: var(--text); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
-        .trend-pill { font-size: 0.8rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
+        .trend-pill { font-size: 0.7rem; font-weight: 900; padding: 2px 5px; border-radius: 4px; margin-left: 4px; }
         .trend-up { color: #000 !important; background: var(--up-green); }
         .trend-down { color: #fff !important; background: var(--down-red); }
 
-        .chart-container { position: relative; height: 380px; width: 100%; margin-top: 15px; }
-        .performance-list { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--border); overflow-y: auto; max-height: 250px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
-        .val-num { font-weight: bold; color: var(--t-light); margin-right: 5px; }
+        .chart-container { position: relative; height: 340px; width: 100%; margin-top: 12px; }
+        .performance-list { list-style: none; padding: 0; margin: 15px 0 0; border-top: 1px solid var(--border); overflow-y: auto; max-height: 250px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--text); }
+        .val-num { font-weight: bold; color: var(--t-light); }
 
-        .staff-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .staff-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--t-light); }
-        .staff-table td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
-        .staff-table tbody tr { cursor: pointer; transition: background 0.2s; }
+        .staff-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .staff-table th { text-align: left; padding: 10px; border-bottom: 2px solid var(--border); color: var(--t-light); }
+        .staff-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .staff-table tbody tr { cursor: pointer; transition: background 0.1s; }
         .staff-table tbody tr:hover { background: rgba(255, 203, 5, 0.1); }
 
-        @media screen and (max-width: 768px) {
+        @media screen and (max-width: 1024px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: relative; border-right: none; }
             .content { margin-left: 0; width: 100%; padding: 15px; }
@@ -198,7 +196,7 @@ async function init() {
 function initCharts() {
     const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
     const rdrOptions = {
-        scales: { r: { suggestMax: 25, ticks: { display: false }, grid: { color: 'rgba(128,128,128,0.2)' } } },
+        scales: { r: { suggestMax: 20, ticks: { display: false }, grid: { color: 'rgba(128,128,128,0.2)' } } },
         ...common
     };
 
@@ -250,9 +248,7 @@ function updateTop10Chart() {
     top10Chart.data.datasets[0].data = scores;
     top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
 
-    // Dinamik Başlık Güncelleme: [BÖLGE] - [METRİK] SIRALAMASI
     document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - " + mLab.toUpperCase() + " SIRALAMASI";
-
     top10Chart.update();
 }
 
@@ -260,26 +256,29 @@ function updateRegionCard(rName) {
     const d = rName === 'Hepsi' ? YENI : YENI.filter(x => x.region === rName);
     const oldD = rName === 'Hepsi' ? ESKI : ESKI.filter(x => x.region === rName);
     const avg = arr => arr.length ? (arr.reduce((sum, b) => sum + b.score, 0) / arr.length) : 0;
-    const curA = avg(d), prevA = avg(oldD);
-    const diff = (curA - prevA).toFixed(2);
+    const curA = avg(d), prevA = avg(oldD), diff = (curA - prevA).toFixed(2);
 
-    const allRegions = [...new Set(YENI.map(x => x.region))];
-    const regionAvgs = allRegions.map(r => ({ name: r, avg: avg(YENI.filter(x => x.region === r)) })).sort((a,b) => b.avg - a.avg);
+    const regionAvgs = [...new Set(YENI.map(x => x.region))].map(r => ({ name: r, avg: avg(YENI.filter(x => x.region === r)) })).sort((a,b) => b.avg - a.avg);
     const rRank = regionAvgs.findIndex(x => x.name === rName) + 1;
 
     document.getElementById('regionTitle').innerText = `${rName === 'Hepsi' ? 'Türkiye' : rName} Bölge Karnesi`;
     document.getElementById('rKpis').innerHTML = `
         <div class="kpi-box"><span>BÖLGE</span><h3>${rName === 'Hepsi' ? 'TR' : rName}</h3></div>
         <div class="kpi-box"><span>PUAN / TREND</span><h3>${curA.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
-        <div class="kpi-box"><span>SIRALAMA</span><h3>${rName === 'Hepsi' ? '-' : rRank + ' / ' + allRegions.length}</h3></div>`;
+        <div class="kpi-box"><span>SIRALAMA</span><h3>${rName === 'Hepsi' ? '-' : rRank + ' / ' + regionAvgs.length}</h3></div>`;
 
     const brk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (d.reduce((a, b) => a + b.breakdown[i], 0) / d.length));
+    const oldBrk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (oldD.length ? (oldD.reduce((a, b) => a + (b.breakdown ? b.breakdown[i] : 0), 0) / oldD.length) : 0));
+
     regionRadarChart.data.datasets[0].data = brk;
     regionRadarChart.update();
 
     const list = document.getElementById('regTrendDetailList');
     list.innerHTML = '';
-    brk.forEach((v, i) => list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><span class="val-num">${v.toFixed(2)} / ${focusMaxWeights[i]}</span></li>`);
+    brk.forEach((v, i) => {
+        const ds = (v - oldBrk[i]).toFixed(2);
+        list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div><span class="val-num">${v.toFixed(2)} / ${focusMaxWeights[i]}</span><span class="trend-pill ${ds>=0?'trend-up':'trend-down'}">${ds>=0?'+':''}${ds}</span></div></li>`;
+    });
 }
 
 function updateView() {
@@ -302,7 +301,10 @@ function updateView() {
 
     const list = document.getElementById('trendDetailList');
     list.innerHTML = '';
-    p.breakdown.forEach((v, i) => list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><span class="val-num">${v.toFixed(2)} / ${focusMaxWeights[i]}</span></li>`);
+    p.breakdown.forEach((v, i) => {
+        const ds = (v - (old.breakdown ? old.breakdown[i] : 0)).toFixed(2);
+        list.innerHTML += `<li class="list-item"><span>${labels[i]}</span><div><span class="val-num">${v.toFixed(2)} / ${focusMaxWeights[i]}</span><span class="trend-pill ${ds>=0?'trend-up':'trend-down'}">${ds>=0?'+':''}${ds}</span></div></li>`;
+    });
 }
 
 function updateStaffTable() {
