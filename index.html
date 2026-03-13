@@ -117,7 +117,7 @@
     </div>
 
     <div class="card">
-        <h3 id="top10Title" style="color:var(--t-light)">TÜRKİYE - SIRALAMA</h3>
+        <h3 id="top10Title" style="color:var(--t-light)">TÜRKİYE - TOPLAM PUAN SIRALAMASI</h3>
         <div class="chart-container"><canvas id="top10Chart"></canvas></div>
     </div>
 
@@ -225,9 +225,6 @@ function runDashboard() {
     const pSel = document.getElementById('personSelect');
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
 
-    // Dinamik Başlık Güncelleme (Hepsi yerine TÜRKİYE)
-    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - SIRALAMA";
-
     pSel.innerHTML = '';
     filtered.sort((a,b) => b.score - a.score).forEach(p => {
         let o = document.createElement('option'); o.value = p.name; o.text = `${p.name} (${p.score.toFixed(2)})`; pSel.add(o);
@@ -242,6 +239,7 @@ function runDashboard() {
 function updateTop10Chart() {
     const reg = document.getElementById('regionSelect').value;
     const mIdx = parseInt(document.getElementById('metricFilter').value);
+    const mLab = document.getElementById('metricFilter').options[document.getElementById('metricFilter').selectedIndex].text;
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
     const sorted = [...filtered].sort((a,b) => (mIdx === -1 ? b.score - a.score : b.breakdown[mIdx] - a.breakdown[mIdx])).slice(0, 10);
 
@@ -251,6 +249,10 @@ function updateTop10Chart() {
     top10Chart.data.labels = sorted.map(x => x.name);
     top10Chart.data.datasets[0].data = scores;
     top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
+
+    // Dinamik Başlık Güncelleme: [BÖLGE] - [METRİK] SIRALAMASI
+    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - " + mLab.toUpperCase() + " SIRALAMASI";
+
     top10Chart.update();
 }
 
@@ -324,4 +326,3 @@ window.onload = init;
 </script>
 </body>
 </html>
-
