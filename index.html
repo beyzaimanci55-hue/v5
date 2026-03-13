@@ -20,6 +20,7 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; font-size: 14px; }
 
+        /* Sidebar Boyutları - Zarif Görünüm İçin Optimize Edildi */
         .sidebar {
             width: 280px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
             padding: 20px; position: fixed; box-sizing: border-box; overflow-y: auto;
@@ -120,7 +121,7 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div class="card">
+        <div class="card" id="personCard">
             <h3 id="personTitle" style="color:var(--t-light)">Kişi Karnesi</h3>
             <div class="kpi-grid" id="pKpis"></div>
             <div class="chart-container"><canvas id="radarChart"></canvas></div>
@@ -216,6 +217,8 @@ function selectFromTable(name, region) {
     runDashboard();
     document.getElementById('personSelect').value = name;
     updateView();
+    // OTOMATİK YUKARI KAYDIRMA
+    document.getElementById('personCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function runDashboard() {
