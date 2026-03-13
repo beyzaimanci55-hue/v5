@@ -215,7 +215,7 @@ function runDashboard() {
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
 
     // Dinamik Başlık Güncelleme
-    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - EN İYİ 10 PERFORMANS";
+    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - SIRALAMA ";
 
     pSel.innerHTML = '';
     filtered.sort((a,b) => b.score - a.score).forEach(p => {
@@ -314,3 +314,4 @@ window.onload = init;
 </script>
 </body>
 </html>
+
