@@ -27,7 +27,6 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; font-size: 14px; }
 
-        /* Sidebar Boyutları */
         .sidebar {
             width: 280px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
             padding: 20px; position: fixed; box-sizing: border-box; overflow-y: auto;
@@ -53,8 +52,10 @@
             margin-bottom: 20px; border-left: 6px solid var(--t-yellow); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .main-header h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.5px; text-transform: uppercase; }
-        .update-info { color: white; font-size: 0.75rem; font-weight: bold; opacity: 0.7; }
+        .header-titles h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.5px; text-transform: uppercase; }
+        .header-titles .sub-report-title { margin: 0; font-size: 0.9rem; color: white; opacity: 0.8; font-weight: normal; margin-top: 4px; }
+        
+        .update-info { color: white; font-size: 0.75rem; font-weight: bold; opacity: 0.7; text-align: right; }
         #lastUpdate { color: var(--t-yellow); }
 
         .card { background: var(--card-bg); border-radius: 10px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 20px; border: 1px solid var(--border); transition: background 0.3s; }
@@ -119,8 +120,11 @@
 
 <div class="content">
     <div class="main-header">
-        <h1>FOCUS 12 Analiz Paneli</h1>
-        <div class="update-info">GÜNCELLEME TARİHİ: <span id="lastUpdate">-</span></div>
+        <div class="header-titles">
+            <h1>FOCUS 12 Analiz Paneli</h1>
+            <div id="dynamicReportTitle" class="sub-report-title">Yükleniyor...</div>
+        </div>
+        <div class="update-info">GÜNCELLEME TARİHİ: <br><span id="lastUpdate">-</span></div>
     </div>
 
     <div class="card">
@@ -166,6 +170,10 @@ let radarChart, regionRadarChart, top10Chart;
 const labels = ['Bütçe Değ.', 'Yenileme', 'Fesih İbra', 'Rollout', 'Sabit Art.', 'Genel İşlem', '5G & Fiber', 'Teminat İade', 'Gecikme F.', 'Biyo. İmza', 'Şikayet K.', 'Tekrarlama'];
 const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
+// --- DOSYA İSMİ AYARI ---
+// Excel dosyanızın adını burada değiştirmeniz yeterli (Örn: OCAK'26.csv)
+const CURRENT_DATA_FILE = "OCAK'26.csv"; 
+
 function toggleTheme() {
     const body = document.body;
     const btn = document.getElementById('themeToggle');
@@ -180,8 +188,14 @@ function toggleTheme() {
 }
 
 async function init() {
+    // Dinamik Başlık Ayarlama: Dosya adından ".csv" kısmını atıp " Raporu" ekler
+    const reportTitle = CURRENT_DATA_FILE.replace('.csv', '').replace('.xlsx', '') + " Raporu";
+    document.getElementById('dynamicReportTitle').innerText = reportTitle;
+
     const fetchCSV = url => new Promise(res => Papa.parse(url + '?v=' + Date.now(), {download: true, header: true, complete: d => res(d.data)}));
-    const [d1, d2] = await Promise.all([fetchCSV('data_ocak.csv'), fetchCSV('örnek_data.csv')]);
+    
+    // CURRENT_DATA_FILE değişkenini burada kullandık
+    const [d1, d2] = await Promise.all([fetchCSV(CURRENT_DATA_FILE), fetchCSV('örnek_data.csv')]);
 
     const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
         name: r['KİRALAMA SORUMLUSU'].trim(),
@@ -222,7 +236,7 @@ function initCharts() {
         borderColor: 'rgba(0, 71, 187, 0.4)',     // Mavi Kesikli Çizgi
         borderDash: [5, 5], 
         fill: true, 
-        pointRadius: 3,                           // Noktalar etkileşim için görünür yapıldı
+        pointRadius: 3,
         pointHoverRadius: 6
     };
 
