@@ -218,8 +218,12 @@ function initCharts() {
 
     const targetDataset = {
         label: 'Hedef', data: focusMaxWeights,
-        backgroundColor: 'rgba(128, 128, 128, 0.05)', borderColor: 'rgba(128, 128, 128, 0.3)',
-        borderDash: [5, 5], fill: true, pointRadius: 0
+        backgroundColor: 'rgba(0, 71, 187, 0.1)', // Şeffaf Mavi
+        borderColor: 'rgba(0, 71, 187, 0.4)',     // Mavi Kesikli Çizgi
+        borderDash: [5, 5], 
+        fill: true, 
+        pointRadius: 3,                           // Noktalar etkileşim için görünür yapıldı
+        pointHoverRadius: 6
     };
 
     top10Chart = new Chart(document.getElementById('top10Chart'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#0047BB' }] }, options: { ...common, indexAxis: 'y' } });
