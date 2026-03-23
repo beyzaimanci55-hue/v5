@@ -181,7 +181,7 @@ function toggleTheme() {
 
 async function init() {
     const fetchCSV = url => new Promise(res => Papa.parse(url + '?v=' + Date.now(), {download: true, header: true, complete: d => res(d.data)}));
-    const [d1, d2] = await Promise.all([fetchCSV('data2.csv'), fetchCSV('eski_data.csv')]);
+    const [d1, d2] = await Promise.all([fetchCSV('data_ocak.csv'), fetchCSV('eski_data.csv')]);
 
     const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
         name: r['KİRALAMA SORUMLUSU'].trim(),
