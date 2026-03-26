@@ -19,15 +19,22 @@
             --bg: #0f0f0f; --card-bg: #1a1a1a; --text: #ffffff;
             --up-green: #00ff00; --down-red: #ff3333; --border: #333; --kpi-bg: #2d2d2d;
             --sidebar-bg: #001a35; --input-bg: #2d2d2d; --input-text: white;
-            --header-bg: #001a35; /* Karanlık mod header rengi */
+            --header-bg: #001a35;
         }
         [data-theme="light"] {
             --bg: #f4f7f6; --card-bg: #ffffff; --text: #1a1a1a;
             --border: #ddd; --kpi-bg: #f8f9fa;
             --sidebar-bg: #ffffff; --input-bg: #ffffff; --input-text: #1a1a1a;
-            --header-bg: #ffffff; /* Aydınlık mod header rengi */
+            --header-bg: #ffffff;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; font-size: 14px; }
+
+        /* Logo Kontrolü */
+        .sidebar-logo { width: 85%; max-width: 200px; margin: 0 auto 25px; display: block; }
+        .logo-light { display: none; }
+        .logo-dark { display: block; }
+        [data-theme="light"] .logo-light { display: block; }
+        [data-theme="light"] .logo-dark { display: none; }
 
         .sidebar {
             width: 280px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
@@ -35,7 +42,6 @@
             border-right: 1px solid var(--border); z-index: 1000; transition: all 0.3s ease;
         }
         [data-theme="light"] .sidebar { color: #1a1a1a; }
-        .sidebar-logo { width: 85%; max-width: 200px; margin: 0 auto 25px; display: block; }
         .sidebar h2 { color: var(--t-yellow); border-bottom: 2px solid var(--t-yellow); padding-bottom: 8px; margin-bottom: 20px; font-size: 1rem; }
         label { display: block; margin: 12px 0 4px; font-weight: bold; font-size: 0.75rem; color: #888; text-transform: uppercase; }
 
@@ -58,7 +64,6 @@
         .header-titles h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.5px; text-transform: uppercase; }
         .header-titles .sub-report-title { margin: 0; font-size: 0.9rem; color: white; opacity: 0.8; font-weight: normal; margin-top: 4px; }
         
-        /* Aydınlık modda yazı renklerini düzeltme */
         [data-theme="light"] .header-titles .sub-report-title,
         [data-theme="light"] .update-info { color: #1a1a1a; opacity: 1; }
 
@@ -97,7 +102,9 @@
 <body>
 
 <div class="sidebar">
-    <img src="./image.png" alt="Turkcell Logo" class="sidebar-logo">
+    <img src="./logo_dark.png" alt="Turkcell Logo Dark" class="sidebar-logo logo-dark">
+    <img src="./logo_light.png" alt="Turkcell Logo Light" class="sidebar-logo logo-light">
+    
     <h2>FİLTRELEME</h2>
     <label>BÖLGE FİLTRESİ</label>
     <select id="regionSelect" onchange="runDashboard()"><option value="Hepsi">Tüm Türkiye</option></select>
@@ -165,7 +172,6 @@
 </div>
 
 <script>
-// PWA Service Worker Kaydı
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW hatası:', err));
