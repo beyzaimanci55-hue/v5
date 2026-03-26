@@ -29,12 +29,16 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; font-size: 14px; }
 
-        /* Logo Kontrolü */
-        .sidebar-logo { width: 85%; max-width: 200px; margin: 0 auto 25px; display: block; }
-        .logo-light { display: none; }
-        .logo-dark { display: block; }
-        [data-theme="light"] .logo-light { display: block; }
-        [data-theme="light"] .logo-dark { display: none; }
+        /* Logo Kontrolü - En Sağlam Yöntem */
+        .sidebar-logo { width: 85%; max-width: 200px; margin: 0 auto 25px; display: block; transition: opacity 0.3s ease; }
+        
+        /* Varsayılan (Gece Modu): Koyu logo gizli, açık logo görünür */
+        .logo-light { display: none !important; }
+        .logo-dark { display: block !important; }
+
+        /* Aydınlık Mod: Koyu logo görünür, açık logo gizli */
+        [data-theme="light"] .logo-light { display: block !important; }
+        [data-theme="light"] .logo-dark { display: none !important; }
 
         .sidebar {
             width: 280px; background: var(--sidebar-bg); height: 100vh; color: var(--text);
@@ -102,8 +106,8 @@
 <body>
 
 <div class="sidebar">
-    <img src="./logo_dark.png" alt="Turkcell Logo Dark" class="sidebar-logo logo-dark">
-    <img src="./logo_light.png" alt="Turkcell Logo Light" class="sidebar-logo logo-light">
+    <img src="logo_dark.png" alt="Turkcell Logo Dark" class="sidebar-logo logo-dark">
+    <img src="logo_light.png" alt="Turkcell Logo Light" class="sidebar-logo logo-light">
     
     <h2>FİLTRELEME</h2>
     <label>BÖLGE FİLTRESİ</label>
