@@ -96,28 +96,29 @@
         .staff-table tbody tr { cursor: pointer; transition: background 0.1s; }
         .staff-table tbody tr:hover { background: rgba(255, 203, 5, 0.1); }
 
-        /* Guide Overlay CSS Düzenlendi */
+        /* Guide Overlay CSS - Zoom ve Sürükleme Desteği */
         #guideOverlay { 
             display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-            background:rgba(0,0,0,0.95); z-index:9999; backdrop-filter:blur(10px); 
+            background:rgba(0,0,0,0.98); z-index:9999; backdrop-filter:blur(15px); 
             overflow:hidden; touch-action: none;
         }
         .modal-content-wrapper { 
             position:relative; width:100%; height:100%; 
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
             cursor: grab;
         }
         .modal-content-wrapper:active { cursor: grabbing; }
         #guideImg { 
-            max-width: 95%; max-height: 95%; 
-            border-radius:8px; box-shadow:0 0 30px rgba(255,203,5,0.2); 
-            transition: transform 0.1s ease-out; transform-origin: center;
+            max-width: 90%; max-height: 90%; 
+            transition: transform 0.05s linear; transform-origin: center;
             user-select: none; -webkit-user-drag: none;
+            will-change: transform;
         }
         .close-guide-area {
             position: fixed; top: 20px; right: 20px; z-index: 10000;
-            background: var(--t-yellow); color: black; padding: 8px 15px;
-            border-radius: 5px; font-weight: bold; cursor: pointer;
+            background: var(--t-yellow); color: black; padding: 12px 20px;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
         @media screen and (max-width: 1024px) {
@@ -230,8 +231,8 @@ const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
 const CURRENT_DATA_FILE = "MART'26.csv"; 
 
-// ZOOM VE PAN DEĞİŞKENLERİ
-let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 };
+// ZOOM VE SÜRÜKLEME SİSTEMİ (KILAVUZLAR İÇİN)
+let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 }, lastDist = 0;
 const zoomContainer = document.getElementById("zoomContainer");
 const guideImg = document.getElementById("guideImg");
 
@@ -239,50 +240,56 @@ function setTransform() {
     guideImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
 }
 
-// Fare Tekerleği ile Zoom
+// Mouse Wheel Zoom Desteği
 zoomContainer.onwheel = function (e) {
     e.preventDefault();
-    const xs = (e.clientX - pointX) / scale;
-    const ys = (e.clientY - pointY) / scale;
     const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-    (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
-    scale = Math.min(Math.max(1, scale), 5);
-    pointX = e.clientX - xs * scale;
-    pointY = e.clientY - ys * scale;
+    (delta > 0) ? (scale *= 1.15) : (scale /= 1.15);
+    scale = Math.min(Math.max(1, scale), 6);
     setTransform();
 }
 
-// Sürükleme Başlangıcı
-zoomContainer.onmousedown = function (e) {
+function handleStart(e) {
     e.preventDefault();
-    start = { x: e.clientX - pointX, y: e.clientY - pointY };
     panning = true;
-}
-zoomContainer.onmouseup = function () { panning = false; }
-zoomContainer.onmousemove = function (e) {
-    if (!panning) return;
-    pointX = (e.clientX - start.x);
-    pointY = (e.clientY - start.y);
-    setTransform();
-}
-
-// Mobil Dokunmatik
-zoomContainer.ontouchstart = function (e) {
-    if(e.touches.length === 1) {
-        panning = true;
-        start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    start = { x: clientX - pointX, y: clientY - pointY };
+    
+    if (e.touches && e.touches.length === 2) {
+        lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     }
 }
-zoomContainer.ontouchmove = function (e) {
-    if (!panning || e.touches.length !== 1) return;
-    pointX = (e.touches[0].clientX - start.x);
-    pointY = (e.touches[0].clientY - start.y);
+
+function handleMove(e) {
+    if (!panning) return;
+    e.preventDefault();
+
+    if (e.touches && e.touches.length === 2) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const zoomDelta = dist / lastDist;
+        scale = Math.min(Math.max(1, scale * zoomDelta), 6);
+        lastDist = dist;
+    } else {
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        pointX = (clientX - start.x);
+        pointY = (clientY - start.y);
+    }
     setTransform();
 }
-zoomContainer.ontouchend = function () { panning = false; }
 
+zoomContainer.onmousedown = handleStart;
+zoomContainer.ontouchstart = handleStart;
+window.onmouseup = () => { panning = false; };
+window.ontouchend = () => { panning = false; lastDist = 0; };
+zoomContainer.onmousemove = handleMove;
+zoomContainer.ontouchmove = handleMove;
+
+// KILAVUZ FONKSİYONLARI (ZOOM ÖZELLİĞİ ENTEGRE EDİLDİ)
 function openGuide(type) {
     guideImg.src = (type === 'setup') ? "FOCUS 12 KURULUM.png" : "FOCUS 12 KULLANIM KILAVUZU.png";
+    // Her açılışta zoom ve pozisyonu sıfırla
     scale = 1; pointX = 0; pointY = 0; setTransform();
     document.getElementById('guideOverlay').style.display = "block";
     document.body.style.overflow = "hidden";
