@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- 216 yeni veri seti, 254 eski veri seti -->
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -8,6 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#001a35">
     <link rel="apple-touch-icon" href="image_3.png">
+
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,8 +34,10 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: row; transition: all 0.3s ease; font-size: 14px; }
 
         .sidebar-logo { width: 105%; max-width: 400px; margin: 0 auto 25px ; display: block; transition: opacity 0.3s ease; }
+        
         .logo-light { display: none !important; }
         .logo-dark { display: block !important; }
+
         [data-theme="light"] .logo-light { display: block !important; }
         [data-theme="light"] .logo-dark { display: none !important; }
 
@@ -60,6 +64,7 @@
             background: var(--header-bg); color: var(--t-yellow); padding: 15px 20px; border-radius: 10px;
             margin-bottom: 20px; border-left: 6px solid var(--t-yellow); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             display: flex; justify-content: space-between; align-items: center;
+            transition: background 0.3s ease;
         }
         .header-titles h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.5px; text-transform: uppercase; }
         .header-titles .sub-report-title { margin: 0; font-size: 0.9rem; color: white; opacity: 0.8; font-weight: normal; margin-top: 4px; }
@@ -91,9 +96,29 @@
         .staff-table tbody tr { cursor: pointer; transition: background 0.1s; }
         .staff-table tbody tr:hover { background: rgba(255, 203, 5, 0.1); }
 
-        /* Guide Overlay */
-        #guideOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; backdrop-filter:blur(10px); overflow-y:auto; cursor:pointer; }
-        .modal-content-wrapper { position:relative; width:95%; max-width:1100px; margin:20px auto; text-align: center; }
+        /* Guide Overlay CSS Düzenlendi */
+        #guideOverlay { 
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.95); z-index:9999; backdrop-filter:blur(10px); 
+            overflow:hidden; touch-action: none;
+        }
+        .modal-content-wrapper { 
+            position:relative; width:100%; height:100%; 
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            cursor: grab;
+        }
+        .modal-content-wrapper:active { cursor: grabbing; }
+        #guideImg { 
+            max-width: 95%; max-height: 95%; 
+            border-radius:8px; box-shadow:0 0 30px rgba(255,203,5,0.2); 
+            transition: transform 0.1s ease-out; transform-origin: center;
+            user-select: none; -webkit-user-drag: none;
+        }
+        .close-guide-area {
+            position: fixed; top: 20px; right: 20px; z-index: 10000;
+            background: var(--t-yellow); color: black; padding: 8px 15px;
+            border-radius: 5px; font-weight: bold; cursor: pointer;
+        }
 
         @media screen and (max-width: 1024px) {
             body { flex-direction: column; }
@@ -135,14 +160,13 @@
 
     <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">GÜNDÜZ MODUNA GEÇ</button>
 
-    <!-- KILAVUZ BUTONLARI -->
     <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
         <button class="theme-btn" style="background: #0047BB; color: white;" onclick="openGuide('setup')">⚙️ KURULUM KILAVUZU</button>
         <button class="theme-btn" style="background: #FFCB05; color: black;" onclick="openGuide('usage')">📖 KULLANIM KILAVUZU</button>
     </div>
 
     <div style="margin-top: 20px; font-size: 0.7rem; color: #888; text-align: center; border-top: 1px solid var(--border); padding-top: 10px;">
-        Destek: focus12turkcell@gmail.com
+        İletişim: focus12turkcell@gmail.com
     </div>
 </div>
 
@@ -185,11 +209,10 @@
     </div>
 </div>
 
-<!-- GUIDE OVERLAY -->
-<div id="guideOverlay" onclick="closeGuide()">
-    <div class="modal-content-wrapper">
-        <div style="color:white; margin-bottom: 10px; font-weight: bold;">Kapatmak için tıklayın [X]</div>
-        <img id="guideImg" src="" style="width:100%; border-radius:12px; box-shadow:0 0 30px rgba(255,203,5,0.3); border:2px solid #444;">
+<div id="guideOverlay">
+    <div class="close-guide-area" onclick="closeGuide()">KAPAT [X]</div>
+    <div class="modal-content-wrapper" id="zoomContainer">
+        <img id="guideImg" src="">
     </div>
 </div>
 
@@ -205,17 +228,63 @@ let radarChart, regionRadarChart, top10Chart;
 const labels = ['Bütçe Değ.', 'Yenileme', 'Fesih İbra', 'Rollout', 'Sabit Art.', 'Genel İşlem', '5G & Fiber', 'Teminat İade', 'Gecikme F.', 'Biyo. İmza', 'Şikayet K.', 'Tekrarlama'];
 const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
-const CURRENT_DATA_FILE = "ŞUBAT'26.csv"; 
+const CURRENT_DATA_FILE = "MART'26.csv"; 
 
-// REHBER FONKSIYONLARI (DOĞRUDAN DOSYADAN ÇEKER)
+// ZOOM VE PAN DEĞİŞKENLERİ
+let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 };
+const zoomContainer = document.getElementById("zoomContainer");
+const guideImg = document.getElementById("guideImg");
+
+function setTransform() {
+    guideImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+}
+
+// Fare Tekerleği ile Zoom
+zoomContainer.onwheel = function (e) {
+    e.preventDefault();
+    const xs = (e.clientX - pointX) / scale;
+    const ys = (e.clientY - pointY) / scale;
+    const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+    (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
+    scale = Math.min(Math.max(1, scale), 5);
+    pointX = e.clientX - xs * scale;
+    pointY = e.clientY - ys * scale;
+    setTransform();
+}
+
+// Sürükleme Başlangıcı
+zoomContainer.onmousedown = function (e) {
+    e.preventDefault();
+    start = { x: e.clientX - pointX, y: e.clientY - pointY };
+    panning = true;
+}
+zoomContainer.onmouseup = function () { panning = false; }
+zoomContainer.onmousemove = function (e) {
+    if (!panning) return;
+    pointX = (e.clientX - start.x);
+    pointY = (e.clientY - start.y);
+    setTransform();
+}
+
+// Mobil Dokunmatik
+zoomContainer.ontouchstart = function (e) {
+    if(e.touches.length === 1) {
+        panning = true;
+        start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
+    }
+}
+zoomContainer.ontouchmove = function (e) {
+    if (!panning || e.touches.length !== 1) return;
+    pointX = (e.touches[0].clientX - start.x);
+    pointY = (e.touches[0].clientY - start.y);
+    setTransform();
+}
+zoomContainer.ontouchend = function () { panning = false; }
+
 function openGuide(type) {
-    const guideImg = document.getElementById('guideImg');
-    const overlay = document.getElementById('guideOverlay');
-    
-    // Dosya isimlerini buraya yazdım, klasörde olması yeterli
     guideImg.src = (type === 'setup') ? "FOCUS 12 KURULUM.png" : "FOCUS 12 KULLANIM KILAVUZU.png";
-    
-    overlay.style.display = "block";
+    scale = 1; pointX = 0; pointY = 0; setTransform();
+    document.getElementById('guideOverlay').style.display = "block";
     document.body.style.overflow = "hidden";
 }
 
@@ -242,7 +311,6 @@ async function init() {
     document.getElementById('dynamicReportTitle').innerText = reportTitle;
 
     const fetchCSV = url => new Promise(res => Papa.parse(url + '?v=' + Date.now(), {download: true, header: true, complete: d => res(d.data)}));
-    
     const [d1, d2] = await Promise.all([fetchCSV(CURRENT_DATA_FILE), fetchCSV("ŞUBAT'26.csv")]);
 
     const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
@@ -258,7 +326,6 @@ async function init() {
     }));
 
     YENI = map(d1); ESKI = map(d2);
-
     const rSel = document.getElementById('regionSelect');
     [...new Set(YENI.map(x => x.region))].sort().forEach(r => {
         let o = document.createElement('option'); o.value = r; o.text = r; rSel.add(o);
@@ -266,7 +333,6 @@ async function init() {
 
     initCharts();
     runDashboard();
-
     const now = new Date();
     document.getElementById('lastUpdate').innerText = now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
 }
@@ -277,16 +343,11 @@ function initCharts() {
         scales: { r: { suggestMax: 20, ticks: { display: false }, grid: { color: 'rgba(128,128,128,0.2)' } } },
         ...common
     };
-
     const targetDataset = {
-        label: 'Tam Puan (Hedef)', data: focusMaxWeights,
-        backgroundColor: 'rgba(0, 71, 187, 0.08)', 
-        borderColor: 'rgba(0, 71, 187, 0.3)',      
-        borderDash: [5, 5], 
-        fill: true, 
-        pointRadius: 0
+        label: 'Hedef', data: focusMaxWeights,
+        backgroundColor: 'rgba(0, 71, 187, 0.08)', borderColor: 'rgba(0, 71, 187, 0.3)', 
+        borderDash: [5, 5], fill: true, pointRadius: 0
     };
-
     top10Chart = new Chart(document.getElementById('top10Chart'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#0047BB' }] }, options: { ...common, indexAxis: 'y' } });
     radarChart = new Chart(document.getElementById('radarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#FFCB05', backgroundColor: 'rgba(255,203,5,0.45)', borderWidth: 2 }, targetDataset] }, options: rdrOptions });
     regionRadarChart = new Chart(document.getElementById('regionRadarChart'), { type: 'radar', data: { labels: labels, datasets: [{ data: [], borderColor: '#00ff00', backgroundColor: 'rgba(0,255,0,0.25)', borderWidth: 2 }, targetDataset] }, options: rdrOptions });
@@ -304,16 +365,11 @@ function runDashboard() {
     const reg = document.getElementById('regionSelect').value;
     const pSel = document.getElementById('personSelect');
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
-
     pSel.innerHTML = '';
     filtered.sort((a,b) => b.score - a.score).forEach(p => {
         let o = document.createElement('option'); o.value = p.name; o.text = `${p.name} (${p.score.toFixed(2)})`; pSel.add(o);
     });
-
-    updateTop10Chart();
-    updateRegionCard(reg);
-    updateView();
-    updateStaffTable();
+    updateTop10Chart(); updateRegionCard(reg); updateView(); updateStaffTable();
 }
 
 function updateTop10Chart() {
@@ -322,14 +378,11 @@ function updateTop10Chart() {
     const mLab = document.getElementById('metricFilter').options[document.getElementById('metricFilter').selectedIndex].text;
     const filtered = reg === 'Hepsi' ? YENI : YENI.filter(x => x.region === reg);
     const sorted = [...filtered].sort((a,b) => (mIdx === -1 ? b.score - a.score : b.breakdown[mIdx] - a.breakdown[mIdx])).slice(0, 10);
-
     const scores = sorted.map(x => (mIdx === -1 ? x.score : x.breakdown[mIdx]));
     const minV = Math.floor(Math.min(...scores) - 1);
-
     top10Chart.data.labels = sorted.map(x => x.name);
     top10Chart.data.datasets[0].data = scores;
     top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
-    
     document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - " + mLab.toUpperCase() + " SIRALAMASI";
     top10Chart.update();
 }
@@ -339,22 +392,17 @@ function updateRegionCard(rName) {
     const oldD = rName === 'Hepsi' ? ESKI : ESKI.filter(x => x.region === rName);
     const avg = arr => arr.length ? (arr.reduce((sum, b) => sum + b.score, 0) / arr.length) : 0;
     const curA = avg(d), prevA = avg(oldD), diff = (curA - prevA).toFixed(2);
-
     const regionAvgs = [...new Set(YENI.map(x => x.region))].map(r => ({ name: r, avg: avg(YENI.filter(x => x.region === r)) })).sort((a,b) => b.avg - a.avg);
     const rRank = regionAvgs.findIndex(x => x.name === rName) + 1;
-
     document.getElementById('regionTitle').innerText = `${rName === 'Hepsi' ? 'Türkiye' : rName} Bölge Karnesi`;
     document.getElementById('rKpis').innerHTML = `
         <div class="kpi-box"><span>BÖLGE</span><h3>${rName === 'Hepsi' ? 'TR' : rName}</h3></div>
         <div class="kpi-box"><span>PUAN / TREND</span><h3>${curA.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
         <div class="kpi-box"><span>SIRALAMA</span><h3>${rName === 'Hepsi' ? '-' : rRank + ' / ' + regionAvgs.length}</h3></div>`;
-
     const brk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (d.reduce((a, b) => a + b.breakdown[i], 0) / d.length));
     const oldBrk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (oldD.length ? (oldD.reduce((a, b) => a + (b.breakdown ? b.breakdown[i] : 0), 0) / oldD.length) : 0));
-    
     regionRadarChart.data.datasets[0].data = brk;
     regionRadarChart.update();
-
     const list = document.getElementById('regTrendDetailList');
     list.innerHTML = '';
     brk.forEach((v, i) => {
@@ -368,19 +416,15 @@ function updateView() {
     const p = YENI.find(x => x.name === n);
     const old = ESKI.find(x => x.name === n) || { score: 0, breakdown: new Array(12).fill(0) };
     if(!p) return;
-
     const pRank = [...YENI].sort((a,b) => b.score - a.score).findIndex(x => x.name === n) + 1;
     const diff = (p.score - old.score).toFixed(2);
-
     document.getElementById('personTitle').innerText = `${p.name} Karnesi`;
     document.getElementById('pKpis').innerHTML = `
         <div class="kpi-box"><span>BÖLGE</span><h3>${p.region}</h3></div>
         <div class="kpi-box"><span>PUAN / TREND</span><h3>${p.score.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
         <div class="kpi-box"><span>GENEL SIRALAMA</span><h3>${pRank} / ${YENI.length}</h3></div>`;
-
     radarChart.data.datasets[0].data = p.breakdown;
     radarChart.update();
-
     const list = document.getElementById('trendDetailList');
     list.innerHTML = '';
     p.breakdown.forEach((v, i) => {
