@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- 216 yeni veri seti, 254 eski veri seti -->
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -96,7 +95,6 @@
         .staff-table tbody tr { cursor: pointer; transition: background 0.1s; }
         .staff-table tbody tr:hover { background: rgba(255, 203, 5, 0.1); }
 
-        /* Guide Overlay CSS - Zoom ve Sürükleme Desteği */
         #guideOverlay { 
             display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
             background:rgba(0,0,0,0.98); z-index:9999; backdrop-filter:blur(15px); 
@@ -132,68 +130,68 @@
 <body>
 
 <div class="sidebar">
-    <img src="logo_dark.png" alt="Turkcell Logo Dark" class="sidebar-logo logo-dark">
-    <img src="logo_light.png" alt="Turkcell Logo Light" class="sidebar-logo logo-light">
+    <img src="logo_dark.png" alt="Logo Dark" class="sidebar-logo logo-dark">
+    <img src="logo_light.png" alt="Logo Light" class="sidebar-logo logo-light">
     
-    <h2>FİLTRELEME</h2>
-    <label>BÖLGE FİLTRESİ</label>
-    <select id="regionSelect" onchange="runDashboard()"><option value="Hepsi">Tüm Türkiye</option></select>
+    <h2>FILTERING</h2>
+    <label>GEO ZONE FILTER</label>
+    <select id="regionSelect" onchange="runDashboard()"><option value="Hepsi">All Regions</option></select>
 
-    <label>SIRALAMA KRİTERİ</label>
+    <label>METRIC CRITERIA</label>
     <select id="metricFilter" onchange="updateTop10Chart()">
-        <option value="-1">Toplam Puan</option>
-        <option value="0">Bütçe Değişim</option>
-        <option value="1">Yenileme</option>
-        <option value="2">Fesih İbra</option>
-        <option value="3">Rollout</option>
-        <option value="4">Sabit Artış</option>
-        <option value="5">Genel İşlem</option>
-        <option value="6">5G & Fiber Kurulum</option>
-        <option value="7">Teminat İade</option>
-        <option value="8">Gecikme Faizi</option>
-        <option value="9">Biyometrik İmza</option>
-        <option value="10">Şikayet Kapama</option>
-        <option value="11">Tekrarlama</option>
+        <option value="-1">TOTAL SCORE</option>
+        <option value="0">BUD_VAR</option>
+        <option value="1">RNW_COUNT</option>
+        <option value="2">TRM_AUTH</option>
+        <option value="3">RLT_IDX</option>
+        <option value="4">FIX_INC</option>
+        <option value="5">GEN_OPS</option>
+        <option value="6">INFRA_5G</option>
+        <option value="7">DEP_RET</option>
+        <option value="8">LATE_FEE</option>
+        <option value="9">DIGI_SIGN</option>
+        <option value="10">CX_TKT_CLS</option>
+        <option value="11">RPT_FLD</option>
     </select>
 
-    <label>PERSONEL SEÇİMİ</label>
+    <label>MANAGER SELECTION</label>
     <select id="personSelect" onchange="updateView()"></select>
 
-    <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">GÜNDÜZ MODUNA GEÇ</button>
+    <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">SWITCH TO LIGHT MODE</button>
 
     <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
-        <button class="theme-btn" style="background: #0047BB; color: white;" onclick="openGuide('setup')">⚙️ KURULUM KILAVUZU</button>
-        <button class="theme-btn" style="background: #FFCB05; color: black;" onclick="openGuide('usage')">📖 KULLANIM KILAVUZU</button>
+        <button class="theme-btn" style="background: #0047BB; color: white;" onclick="openGuide('setup')">⚙️ SETUP GUIDE</button>
+        <button class="theme-btn" style="background: #FFCB05; color: black;" onclick="openGuide('usage')">📖 USAGE GUIDE</button>
     </div>
 
     <div style="margin-top: 20px; font-size: 0.7rem; color: #888; text-align: center; border-top: 1px solid var(--border); padding-top: 10px;">
-        İletişim: focus12turkcell@gmail.com
+        Contact: focus12turkcell@gmail.com
     </div>
 </div>
 
 <div class="content">
     <div class="main-header">
         <div class="header-titles">
-            <h1>FOCUS 12 Analiz Paneli</h1>
-            <div id="dynamicReportTitle" class="sub-report-title">Yükleniyor...</div>
+            <h1>FOCUS 12 Analytics Portal</h1>
+            <div id="dynamicReportTitle" class="sub-report-title">Loading...</div>
         </div>
-        <div class="update-info">GÜNCELLEME TARİHİ: <br><span id="lastUpdate">-</span></div>
+        <div class="update-info">LAST UPDATED: <br><span id="lastUpdate">-</span></div>
     </div>
 
     <div class="card">
-        <h3 id="top10Title" style="color:var(--t-light)">TÜRKİYE - TOPLAM PUAN SIRALAMASI</h3>
+        <h3 id="top10Title" style="color:var(--t-light)">ALL REGIONS - TOTAL SCORE RANKING</h3>
         <div class="chart-container"><canvas id="top10Chart"></canvas></div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div class="card" id="personCard">
-            <h3 id="personTitle" style="color:var(--t-light)">Kişi Karnesi</h3>
+            <h3 id="personTitle" style="color:var(--t-light)">Manager Scorecard</h3>
             <div class="kpi-grid" id="pKpis"></div>
             <div class="chart-container"><canvas id="radarChart"></canvas></div>
             <ul class="performance-list" id="trendDetailList"></ul>
         </div>
         <div class="card">
-            <h3 id="regionTitle" style="color:var(--t-light)">Bölge Karnesi</h3>
+            <h3 id="regionTitle" style="color:var(--t-light)">Regional Scorecard</h3>
             <div class="kpi-grid" id="rKpis"></div>
             <div class="chart-container"><canvas id="regionRadarChart"></canvas></div>
             <ul class="performance-list" id="regTrendDetailList"></ul>
@@ -201,17 +199,17 @@
     </div>
 
     <div class="card">
-        <h3 style="color:var(--t-light)">Personel Sıralama Listesi (Detay için isme tıklayın)</h3>
-        <input type="text" id="staffSearch" class="search-box" placeholder="İsim veya Bölge Ara..." onkeyup="searchTable()">
+        <h3 style="color:var(--t-light)">Manager Performance List (Click name for details)</h3>
+        <input type="text" id="staffSearch" class="search-box" placeholder="Search Name or Zone...">
         <table class="staff-table" id="staffTable">
-            <thead><tr><th>Bölge</th><th>İsim Soyisim</th><th>Puan</th><th>Sıra</th></tr></thead>
+            <thead><tr><th>GEO_ZONE</th><th>MGR_ID</th><th>SCORE</th><th>RANK</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 </div>
 
 <div id="guideOverlay">
-    <div class="close-guide-area" onclick="closeGuide()">KAPAT [X]</div>
+    <div class="close-guide-area" onclick="closeGuide()">CLOSE [X]</div>
     <div class="modal-content-wrapper" id="zoomContainer">
         <img id="guideImg" src="">
     </div>
@@ -220,18 +218,28 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW hatası:', err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
   });
 }
 
 let YENI = [], ESKI = [];
 let radarChart, regionRadarChart, top10Chart;
-const labels = ['Bütçe Değ.', 'Yenileme', 'Fesih İbra', 'Rollout', 'Sabit Art.', 'Genel İşlem', '5G & Fiber', 'Teminat İade', 'Gecikme F.', 'Biyo. İmza', 'Şikayet K.', 'Tekrarlama'];
+// Abbreviated Labels for Radar and Lists
+const labels = ['BUD_VAR', 'RNW_COUNT', 'TRM_AUTH', 'RLT_IDX', 'FIX_INC', 'GEN_OPS', 'INFRA_5G', 'DEP_RET', 'LATE_FEE', 'DIGI_SIGN', 'CX_TKT_CLS', 'RPT_FLD'];
 const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
 const CURRENT_DATA_FILE = "MART'26.csv"; 
 
-// ZOOM VE SÜRÜKLEME SİSTEMİ (KILAVUZLAR İÇİN)
+// Mapping for regions and manager names (using the previously established anonymization logic)
+const regionMap = {
+    "Adana": "South_Dist", "Ankara": "Cap_Zone", "Antalya": "Coast_Reg",
+    "Asya": "Pacific_SEC", "Avrupa": "Atlantic_SEC", "Bursa": "Industrial_NE",
+    "Diyarbakır": "East_Plateau", "İzmir": "West_Port", "Trabzon": "North_Edge"
+};
+
+// Placeholder for Manager Name Mapping - In a real scenario, this would be a static JSON
+// For the code, we assume the CSV is already anonymized or we use the name as is.
+
 let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 }, lastDist = 0;
 const zoomContainer = document.getElementById("zoomContainer");
 const guideImg = document.getElementById("guideImg");
@@ -240,7 +248,6 @@ function setTransform() {
     guideImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
 }
 
-// Mouse Wheel Zoom Desteği
 zoomContainer.onwheel = function (e) {
     e.preventDefault();
     const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
@@ -286,10 +293,8 @@ window.ontouchend = () => { panning = false; lastDist = 0; };
 zoomContainer.onmousemove = handleMove;
 zoomContainer.ontouchmove = handleMove;
 
-// KILAVUZ FONKSİYONLARI (ZOOM ÖZELLİĞİ ENTEGRE EDİLDİ)
 function openGuide(type) {
     guideImg.src = (type === 'setup') ? "FOCUS 12 KURULUM.png" : "FOCUS 12 KULLANIM KILAVUZU.png";
-    // Her açılışta zoom ve pozisyonu sıfırla
     scale = 1; pointX = 0; pointY = 0; setTransform();
     document.getElementById('guideOverlay').style.display = "block";
     document.body.style.overflow = "hidden";
@@ -305,32 +310,43 @@ function toggleTheme() {
     const btn = document.getElementById('themeToggle');
     if (body.getAttribute('data-theme') === 'light') {
         body.removeAttribute('data-theme');
-        btn.innerText = 'GÜNDÜZ MODUNA GEÇ';
+        btn.innerText = 'SWITCH TO LIGHT MODE';
     } else {
         body.setAttribute('data-theme', 'light');
-        btn.innerText = 'GECE MODUNA GEÇ';
+        btn.innerText = 'SWITCH TO DARK MODE';
     }
     runDashboard();
 }
 
 async function init() {
-    const reportTitle = CURRENT_DATA_FILE.replace('.csv', '').replace('.xlsx', '') + " Raporu";
+    const reportTitle = CURRENT_DATA_FILE.replace('.csv', '').replace('.xlsx', '') + " Summary";
     document.getElementById('dynamicReportTitle').innerText = reportTitle;
 
     const fetchCSV = url => new Promise(res => Papa.parse(url + '?v=' + Date.now(), {download: true, header: true, complete: d => res(d.data)}));
     const [d1, d2] = await Promise.all([fetchCSV(CURRENT_DATA_FILE), fetchCSV("ŞUBAT'26.csv")]);
 
-    const map = d => d.filter(r => r['KİRALAMA SORUMLUSU']).map(r => ({
-        name: r['KİRALAMA SORUMLUSU'].trim(),
-        region: r['BÖLGE'] ? r['BÖLGE'].trim() : 'Bilinmiyor',
-        score: parseFloat(r['Puan'] || 0),
-        breakdown: [
-            parseFloat(r['BÜTÇE DEĞİŞİM']||0), parseFloat(r['YENİLEME']||0), parseFloat(r['FESİH İBRA']||0),
-            parseFloat(r['ROLLOUT']||0), parseFloat(r['SABİT ARTIŞ']||0), parseFloat(r['GENEL İŞLEM']||0),
-            parseFloat(r['5G KURULUM - FİBER SİTE']||0), parseFloat(r['TEMİNAT İADE']||0), parseFloat(r['GECİKME FAİZİ']||0),
-            parseFloat(r['BİYOMETRİK İMZA']||0), parseFloat(r['MÜŞTERİ ŞİKAYETLERİ KAPAMA']||0), parseFloat(r['TEKRARLAMA']||0)
-        ]
-    }));
+    const map = d => d.filter(r => r['MGR_ID'] || r['KİRALAMA SORUMLUSU']).map(r => {
+        const rawRegion = r['GEO_ZONE'] || r['BÖLGE'];
+        return {
+            name: (r['MGR_ID'] || r['KİRALAMA SORUMLUSU']).trim(),
+            region: regionMap[rawRegion] || rawRegion || 'Unknown',
+            score: parseFloat(r['KPI_SCORE'] || r['Puan'] || 0),
+            breakdown: [
+                parseFloat(r['BUD_VAR'] || r['BÜTÇE DEĞİŞİM'] || 0), 
+                parseFloat(r['RNW_COUNT'] || r['YENİLEME'] || 0), 
+                parseFloat(r['TRM_AUTH'] || r['FESİH İBRA'] || 0),
+                parseFloat(r['RLT_IDX'] || r['ROLLOUT'] || 0), 
+                parseFloat(r['FIX_INC'] || r['SABİT ARTIŞ'] || 0), 
+                parseFloat(r['GEN_OPS'] || r['GENEL İŞLEM'] || 0),
+                parseFloat(r['INFRA_5G'] || r['5G KURULUM - FİBER SİTE'] || 0), 
+                parseFloat(r['DEP_RET'] || r['TEMİNAT İADE'] || 0), 
+                parseFloat(r['LATE_FEE'] || r['GECİKME FAİZİ'] || 0),
+                parseFloat(r['DIGI_SIGN'] || r['BİYOMETRİK İMZA'] || 0), 
+                parseFloat(r['CX_TKT_CLS'] || r['MÜŞTERİ ŞİKAYETLERİ KAPAMA'] || 0), 
+                parseFloat(r['RPT_FLD'] || r['TEKRARLAMA'] || 0)
+            ]
+        };
+    });
 
     YENI = map(d1); ESKI = map(d2);
     const rSel = document.getElementById('regionSelect');
@@ -351,7 +367,7 @@ function initCharts() {
         ...common
     };
     const targetDataset = {
-        label: 'Hedef', data: focusMaxWeights,
+        label: 'Target', data: focusMaxWeights,
         backgroundColor: 'rgba(0, 71, 187, 0.08)', borderColor: 'rgba(0, 71, 187, 0.3)', 
         borderDash: [5, 5], fill: true, pointRadius: 0
     };
@@ -390,7 +406,7 @@ function updateTop10Chart() {
     top10Chart.data.labels = sorted.map(x => x.name);
     top10Chart.data.datasets[0].data = scores;
     top10Chart.options.scales = { x: { min: (minV > 0 ? minV : 0) } };
-    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'TÜRKİYE' : reg.toUpperCase()) + " - " + mLab.toUpperCase() + " SIRALAMASI";
+    document.getElementById('top10Title').innerText = (reg === 'Hepsi' ? 'ALL REGIONS' : reg.toUpperCase()) + " - " + mLab.toUpperCase() + " RANKING";
     top10Chart.update();
 }
 
@@ -401,11 +417,11 @@ function updateRegionCard(rName) {
     const curA = avg(d), prevA = avg(oldD), diff = (curA - prevA).toFixed(2);
     const regionAvgs = [...new Set(YENI.map(x => x.region))].map(r => ({ name: r, avg: avg(YENI.filter(x => x.region === r)) })).sort((a,b) => b.avg - a.avg);
     const rRank = regionAvgs.findIndex(x => x.name === rName) + 1;
-    document.getElementById('regionTitle').innerText = `${rName === 'Hepsi' ? 'Türkiye' : rName} Bölge Karnesi`;
+    document.getElementById('regionTitle').innerText = `${rName === 'Hepsi' ? 'Overall' : rName} Zone Scorecard`;
     document.getElementById('rKpis').innerHTML = `
-        <div class="kpi-box"><span>BÖLGE</span><h3>${rName === 'Hepsi' ? 'TR' : rName}</h3></div>
-        <div class="kpi-box"><span>PUAN / TREND</span><h3>${curA.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
-        <div class="kpi-box"><span>SIRALAMA</span><h3>${rName === 'Hepsi' ? '-' : rRank + ' / ' + regionAvgs.length}</h3></div>`;
+        <div class="kpi-box"><span>ZONE</span><h3>${rName === 'Hepsi' ? 'GLOBAL' : rName}</h3></div>
+        <div class="kpi-box"><span>SCORE / TREND</span><h3>${curA.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
+        <div class="kpi-box"><span>RANK</span><h3>${rName === 'Hepsi' ? '-' : rRank + ' / ' + regionAvgs.length}</h3></div>`;
     const brk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (d.reduce((a, b) => a + b.breakdown[i], 0) / d.length));
     const oldBrk = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => (oldD.length ? (oldD.reduce((a, b) => a + (b.breakdown ? b.breakdown[i] : 0), 0) / oldD.length) : 0));
     regionRadarChart.data.datasets[0].data = brk;
@@ -425,11 +441,11 @@ function updateView() {
     if(!p) return;
     const pRank = [...YENI].sort((a,b) => b.score - a.score).findIndex(x => x.name === n) + 1;
     const diff = (p.score - old.score).toFixed(2);
-    document.getElementById('personTitle').innerText = `${p.name} Karnesi`;
+    document.getElementById('personTitle').innerText = `${p.name} Scorecard`;
     document.getElementById('pKpis').innerHTML = `
-        <div class="kpi-box"><span>BÖLGE</span><h3>${p.region}</h3></div>
-        <div class="kpi-box"><span>PUAN / TREND</span><h3>${p.score.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
-        <div class="kpi-box"><span>GENEL SIRALAMA</span><h3>${pRank} / ${YENI.length}</h3></div>`;
+        <div class="kpi-box"><span>GEO_ZONE</span><h3>${p.region}</h3></div>
+        <div class="kpi-box"><span>SCORE / TREND</span><h3>${p.score.toFixed(2)} <span class="trend-pill ${diff>=0?'trend-up':'trend-down'}">${diff>=0?'▲ +':'▼ '}${diff}</span></h3></div>
+        <div class="kpi-box"><span>OVERALL RANK</span><h3>${pRank} / ${YENI.length}</h3></div>`;
     radarChart.data.datasets[0].data = p.breakdown;
     radarChart.update();
     const list = document.getElementById('trendDetailList');
