@@ -112,6 +112,9 @@
             user-select: none; -webkit-user-drag: none;
             will-change: transform;
         }
+        #guideIframe {
+            display: none; width: 90%; height: 85%; border: none; background: white; border-radius: 10px;
+        }
         .close-guide-area {
             position: fixed; top: 20px; right: 20px; z-index: 10000;
             background: var(--t-yellow); color: black; padding: 12px 20px;
@@ -162,6 +165,7 @@
     <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
         <button class="theme-btn" style="background: #0047BB; color: white;" onclick="openGuide('setup')">⚙️ SETUP GUIDE</button>
         <button class="theme-btn" style="background: #FFCB05; color: black;" onclick="openGuide('usage')">📖 USAGE GUIDE</button>
+        <button class="theme-btn" style="background: #28a745; color: white;" onclick="openKPIGuide()">📚 KPI KILAVUZU</button>
     </div>
 
     <div style="margin-top: 20px; font-size: 0.7rem; color: #888; text-align: center; border-top: 1px solid var(--border); padding-top: 10px;">
@@ -200,7 +204,7 @@
 
     <div class="card">
         <h3 style="color:var(--t-light)">Manager Performance List (Click name for details)</h3>
-        <input type="text" id="staffSearch" class="search-box" placeholder="Search Name or Zone...">
+        <input type="text" id="staffSearch" class="search-box" onkeyup="searchTable()" placeholder="Search Name or Zone...">
         <table class="staff-table" id="staffTable">
             <thead><tr><th>GEO_ZONE</th><th>MGR_ID</th><th>SCORE</th><th>RANK</th></tr></thead>
             <tbody></tbody>
@@ -212,6 +216,7 @@
     <div class="close-guide-area" onclick="closeGuide()">CLOSE [X]</div>
     <div class="modal-content-wrapper" id="zoomContainer">
         <img id="guideImg" src="">
+        <iframe id="guideIframe" src=""></iframe>
     </div>
 </div>
 
@@ -224,31 +229,28 @@ if ('serviceWorker' in navigator) {
 
 let YENI = [], ESKI = [];
 let radarChart, regionRadarChart, top10Chart;
-// Abbreviated Labels for Radar and Lists
 const labels = ['BUD_VAR', 'RNW_COUNT', 'TRM_AUTH', 'RLT_IDX', 'FIX_INC', 'GEN_OPS', 'INFRA_5G', 'DEP_RET', 'LATE_FEE', 'DIGI_SIGN', 'CX_TKT_CLS', 'RPT_FLD'];
 const focusMaxWeights = [15, 10, 8, 15, 5, 10, 10, 7, 5, 5, 5, 5];
 
 const CURRENT_DATA_FILE = "ŞUBAT'26.csv"; 
 
-// Mapping for regions and manager names (using the previously established anonymization logic)
 const regionMap = {
     "Adana": "South_Dist", "Ankara": "Cap_Zone", "Antalya": "Coast_Reg",
     "Asya": "Pacific_SEC", "Avrupa": "Atlantic_SEC", "Bursa": "Industrial_NE",
     "Diyarbakır": "East_Plateau", "İzmir": "West_Port", "Trabzon": "North_Edge"
 };
 
-// Placeholder for Manager Name Mapping - In a real scenario, this would be a static JSON
-// For the code, we assume the CSV is already anonymized or we use the name as is.
-
 let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 }, lastDist = 0;
 const zoomContainer = document.getElementById("zoomContainer");
 const guideImg = document.getElementById("guideImg");
+const guideIframe = document.getElementById("guideIframe");
 
 function setTransform() {
     guideImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
 }
 
 zoomContainer.onwheel = function (e) {
+    if(guideImg.style.display === "none") return;
     e.preventDefault();
     const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
     (delta > 0) ? (scale *= 1.15) : (scale /= 1.15);
@@ -257,6 +259,7 @@ zoomContainer.onwheel = function (e) {
 }
 
 function handleStart(e) {
+    if(guideImg.style.display === "none") return;
     e.preventDefault();
     panning = true;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -269,7 +272,7 @@ function handleStart(e) {
 }
 
 function handleMove(e) {
-    if (!panning) return;
+    if (!panning || guideImg.style.display === "none") return;
     e.preventDefault();
 
     if (e.touches && e.touches.length === 2) {
@@ -294,14 +297,26 @@ zoomContainer.onmousemove = handleMove;
 zoomContainer.ontouchmove = handleMove;
 
 function openGuide(type) {
+    guideIframe.style.display = "none";
+    guideImg.style.display = "block";
     guideImg.src = (type === 'setup') ? "FOCUS 12 KURULUM.png" : "FOCUS 12 KULLANIM KILAVUZU.png";
     scale = 1; pointX = 0; pointY = 0; setTransform();
     document.getElementById('guideOverlay').style.display = "block";
     document.body.style.overflow = "hidden";
 }
 
+function openKPIGuide() {
+    guideImg.style.display = "none";
+    guideIframe.style.display = "block";
+    // Dosya adını burada güncelledik
+    guideIframe.src = "Focus 12 KPI Kılavuzu v1.html";
+    document.getElementById('guideOverlay').style.display = "block";
+    document.body.style.overflow = "hidden";
+}
+
 function closeGuide() {
     document.getElementById('guideOverlay').style.display = "none";
+    guideIframe.src = "";
     document.body.style.overflow = "auto";
 }
 
